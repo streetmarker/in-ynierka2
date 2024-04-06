@@ -1,5 +1,18 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div>
+    <img alt="Vue logo" src="../assets/logo.png" />
+    <TutorsList />
   </div>
 </template>
+
+<script>
+// @ is an alias to /src
+import TutorsList from "@/components/TutorsList.vue";
+
+export default {
+  name: "HomeView",
+  components: {
+    TutorsList,
+  },
+};
+</script>
