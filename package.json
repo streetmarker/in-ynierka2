@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build && cp -r dist/* ../Desktop/fire/public/",
+    "host": "cd ../Desktop/fire && firebase deploy --only hosting && cd ../../tutor-app",
+    "full": "npm run build && npm run host",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
@@ -79,6 +81,6 @@
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
-    "*.{js,jsx,vue}": "vue-cli-service lint"
+    "*.{js,jsx}": "vue-cli-service lint"
   }
 }
