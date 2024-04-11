@@ -1,18 +1,34 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <!-- <Dashboard msg="Welcome to Your Vue.js App" /> -->
+    <div class="container">
+      <div class="row">
+        <div class="col-sm"></div>
+        <div class="col-sm">
+          <img alt="Vue logo" src="../assets/logo.png" />
+          <h1>{{ userData.fullName }}</h1>
+          <p>{{ userData.email }}</p>
+          <img :src="userData.photo">
+        </div>
+        <div class="col-sm"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-// import Dashboard from "@/components/WelcomePage.vue";
+import { useStore } from "vuex"; // Importowanie hooka useStore z Vuex
 
 export default {
-  name: "HomeView",
-  // components: {
-  //   Dashboard,
+  name: "ClientPanel",
+  // data() {
+  //   return {
+  //     userData: null
+  //   };
   // },
+  computed: {
+    userData() {
+      return this.$store.state.user;
+    },
+  },
 };
 </script>

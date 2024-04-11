@@ -11,11 +11,15 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@paypal/paypal-js": "^8.0.4",
     "axios": "^1.6.8",
     "core-js": "^3.8.3",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "firebase": "^10.10.0",
+    "firebase": "^10.11.0",
     "firebase-admin": "^12.0.0",
+    "firebaseui": "^6.1.0",
+    "node-fetch": "^3.3.2",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",

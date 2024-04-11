@@ -1,18 +1,12 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <!-- <Dashboard msg="Welcome to Your Vue.js App" /> -->
+    <!-- <div id="firebaseui-auth-container"></div> -->
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-// import Dashboard from "@/components/WelcomePage.vue";
 
 export default {
-  name: "HomeView",
-  // components: {
-  //   Dashboard,
-  // },
+  name: "LoginPage",
 };
 </script>
