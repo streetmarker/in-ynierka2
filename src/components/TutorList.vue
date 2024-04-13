@@ -1,66 +1,43 @@
 <template>
   <div class="hello">
-    <div class="container">
-      <div class="row">
-        <div class="col-sm"></div>
-        <div class="col-sm">
-          <div v-if="tutors.length > 0">
-            <h3>Lista Korepetytorów:</h3>
-            <ul>
-              <li v-for="(tutor, index) in tutors" :key="index">
-                {{ tutor.data.first }} {{ tutor.data.last }} (Ur.
-                {{ tutor.data.born }}), {{ tutor.data.subject }},
-                {{ tutor.data.level }}
-                <button @click="confirmDeleteTutor(tutor)">Usuń</button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3>Dodaj Korepetytora:</h3>
-            <form @submit.prevent="addTutor">
-              <label for="firstName">Imię:</label>
-              <input
-                type="text"
-                id="firstName"
-                v-model="newTutor.first"
-                required
-              />
-              <label for="lastName">Nazwisko:</label>
-              <input
-                type="text"
-                id="lastName"
-                v-model="newTutor.last"
-                required
-              />
-              <label for="birthDate">Data urodzenia:</label>
-              <input
-                type="date"
-                id="birthDate"
-                v-model="newTutor.born"
-                required
-              />
-              <label for="subject">Przedmiot:</label>
-              <select id="subject" v-model="newTutor.subject" required>
-                <option value="Matematyka">Matematyka</option>
-                <option value="Fizyka">Fizyka</option>
-                <option value="Chemia">Chemia</option>
-              </select>
-              <label for="level">Poziom:</label>
-              <select id="level" v-model="newTutor.level" required>
-                <option value="Szkoła podstawowa">Szkoła podstawowa</option>
-                <option value="Szkoła średnia">Szkoła średnia</option>
-                <option value="Szkoła średnia rozszerzenie">
-                  Szkoła średnia rozszerzenie
-                </option>
-                <option value="Studia">Studia</option>
-              </select>
-              <button type="submit">Dodaj Korepetytora</button>
-            </form>
-          </div>
-        </div>
-        <div class="col-sm"></div>
-      </div>
+    <div v-if="tutors.length > 0">
+      <h3>Lista Korepetytorów:</h3>
+      <ul>
+        <li v-for="(tutor, index) in tutors" :key="index">
+          {{ tutor.data.first }} {{ tutor.data.last }} (Ur.
+          {{ tutor.data.born }}), {{ tutor.data.subject }},
+          {{ tutor.data.level }}
+          <button @click="confirmDeleteTutor(tutor)">Usuń</button>
+        </li>
+      </ul>
     </div>
+    <!-- <div> -->
+      <h3>Dodaj Korepetytora:</h3>
+      <form @submit.prevent="addTutor">
+        <label for="firstName">Imię:</label>
+        <input type="text" id="firstName" v-model="newTutor.first" required />
+        <label for="lastName">Nazwisko:</label>
+        <input type="text" id="lastName" v-model="newTutor.last" required />
+        <label for="birthDate">Data urodzenia:</label>
+        <input type="date" id="birthDate" v-model="newTutor.born" required />
+        <label for="subject">Przedmiot:</label>
+        <select id="subject" v-model="newTutor.subject" required>
+          <option value="Matematyka">Matematyka</option>
+          <option value="Fizyka">Fizyka</option>
+          <option value="Chemia">Chemia</option>
+        </select>
+        <label for="level">Poziom:</label>
+        <select id="level" v-model="newTutor.level" required>
+          <option value="Szkoła podstawowa">Szkoła podstawowa</option>
+          <option value="Szkoła średnia">Szkoła średnia</option>
+          <option value="Szkoła średnia rozszerzenie">
+            Szkoła średnia rozszerzenie
+          </option>
+          <option value="Studia">Studia</option>
+        </select>
+        <button type="submit">Dodaj Korepetytora</button>
+      </form>
+    <!-- </div> -->
   </div>
 </template>
 

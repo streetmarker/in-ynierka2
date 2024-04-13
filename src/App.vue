@@ -1,24 +1,31 @@
 <template>
-  <div class="notification-bar" id="notificationBar"></div>
+  <div>
+    <div class="notification-bar" id="notificationBar"></div>
+    <nav>
+      <router-link to="/">Home</router-link> |
+      <!-- <router-link to="/login">Login</router-link> | -->
+      <!-- <router-link to="/admin">admin[TODO]</router-link> | -->
+      <!-- <router-link to="/visit">visit[TODO]</router-link> | -->
+      <router-link to="/panel">Panel klienta</router-link> |
+      <router-link to="/tutor-list">Lista korepetytorów</router-link> |
+      <!-- <router-link to="/tutor-admin">tutor-admin[TODO]</router-link> | -->
+      <!-- <router-link to="/tutor-manager">tutor-manager[TODO]</router-link> -->
 
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <!-- <router-link to="/login">Login</router-link> | -->
-    <router-link to="/admin">admin[TODO]</router-link> |
-    <router-link to="/visit">visit[TODO]</router-link> |
-    <router-link to="/panel">panel</router-link> |
-    <router-link to="/tutor-list">tutor-list</router-link> |
-    <router-link to="/tutor-admin">tutor-admin[TODO]</router-link> |
-    <router-link to="/tutor-manager">tutor-manager[TODO]</router-link>
-  </nav>
-  <router-view />
-  <!-- <button @click="dumpLogs">DUMP</button> -->
-  <!-- <button @click="test">TEST</button> -->
-  
-  <div id="firebaseui-auth-container"></div>
-  <dialog v-if="showLoginDialog">
-  </dialog>
-  <!-- <br />
+      <button id="sign-out">Wyloguj się</button>
+    </nav>
+    <div class="container">
+      <div id="features" class="row text-center">
+        <div class="col">
+          <router-view />
+        </div>
+      </div>
+    </div>
+    <!-- <button @click="dumpLogs">DUMP</button> -->
+    <!-- <button @click="test">TEST</button> -->
+
+    <div id="firebaseui-auth-container"></div>
+    <dialog v-if="showLoginDialog"></dialog>
+    <!-- <br />
   <div class="container">
     <div class="row">
       <div class="col-sm"></div>
@@ -30,11 +37,12 @@
   </div>
   <br /> -->
 
-  <!-- {{ logs }} -->
+    <!-- {{ logs }} -->
+  </div>
 </template>
 
 <script>
-import { db} from "../firebaseInitializer";
+import { db } from "../firebaseInitializer";
 import { collection, addDoc } from "firebase/firestore";
 import { loadScript } from "@paypal/paypal-js";
 // import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
@@ -47,8 +55,13 @@ export default {
   data() {
     return {
       logs: [],
-      showLoginDialog: false
+      showLoginDialog: false,
     };
+  },
+  computed: {
+    userData() {
+      return this.$store.state.user; // TODO do komponentu
+    },
   },
   beforeMount() {
     // this.initLogs();
@@ -162,5 +175,10 @@ nav a.router-link-exact-active {
   max-height: 50px;
   vertical-align: middle;
   margin-right: 10px;
+}
+.col {
+  display: flex; /* Ustawia elementy w rzędzie */
+  align-items: center; /* Wyśrodkowuje zawartość w pionie */
+  justify-content: center; /* Wyśrodkowuje zawartość w poziomie */
 }
 </style>

@@ -35,76 +35,148 @@ export const auth = getAuth(app);
 // console.log(auth);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
+
 // console.log(firebase);
-ui.start('#firebaseui-auth-container', {
-  // signInSuccessUrl: '/',
-  signInOptions: [
-    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-    firebase.auth.EmailAuthProvider.PROVIDER_ID
-  ],
-  callbacks: {
-    signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-      // Process result. This will not trigger on merge conflicts.
-      // On success redirect to signInSuccessUrl.
-      let formatData = {
-        fullName: authResult.user.displayName,
-        email: authResult.user.email,
-        photo: authResult.user.photoURL,
-        provider: authResult.user.providerData.providerId
+async function startUi() {
+  setTimeout(() => {
+    console.log("start ui:", auth.currentUser);
+    if (auth.currentUser) {
+      let formatDataLogged = {
+        fullName: auth.currentUser.displayName,
+        email: auth.currentUser.email,
+        photo: auth.currentUser.photoURL,
+        provider: auth.currentUser.providerData.providerId
       }
-      console.log(redirectUrl);
-      store.commit('setUser', formatData);
-      // console.log(JSON.stringify(authResult, null, 2)+'||||'+redirectUrl);
+      store.commit('setUser', formatDataLogged);
+      document.getElementById('sign-out').style.display = 'block';
+    } else {
+      ui.start('#firebaseui-auth-container', {
+        // signInSuccessUrl: '/',
+        signInFlow: 'popup',
+        signInOptions: [
+          firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+          // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+          firebase.auth.EmailAuthProvider.PROVIDER_ID
+        ],
+        callbacks: {
+          signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+            // Process result. This will not trigger on merge conflicts.
+            // On success redirect to signInSuccessUrl.
+            let formatData = {
+              fullName: authResult.user.displayName,
+              email: authResult.user.email,
+              photo: authResult.user.photoURL,
+              provider: authResult.user.providerData.providerId
+            }
+            console.log(redirectUrl);
+            store.commit('setUser', formatData);
+            document.getElementById('sign-out').style.display = 'block';
 
-      return false;
-    },
-    // signInFailure callback must be provided to handle merge conflicts which
-    // occur when an existing credential is linked to an anonymous user.
-    // signInFailure: function(error) {
-    //   // For merge conflicts, the error.code will be
-    //   // 'firebaseui/anonymous-upgrade-merge-conflict'.
-    //   if (error.code != 'firebaseui/anonymous-upgrade-merge-conflict') {
-    //     return Promise.resolve();
-    //   }
-    //   // The credential the user tried to sign in with.
-    //   var cred = error.credential;
-    //   // If using Firebase Realtime Database. The anonymous user data has to be
-    //   // copied to the non-anonymous user.
-    //   var app = firebase.app();
-    //   // Save anonymous user data first.
-    //   return app.database().ref('users/' + firebase.auth().currentUser.uid)
-    //       .once('value')
-    //       .then(function(snapshot) {
-    //         data = snapshot.val();
-    //         // This will trigger onAuthStateChanged listener which
-    //         // could trigger a redirect to another page.
-    //         // Ensure the upgrade flow is not interrupted by that callback
-    //         // and that this is given enough time to complete before
-    //         // redirection.
-    //         return firebase.auth().signInWithCredential(cred);
-    //       })
-    //       .then(function(user) {
-    //         // Original Anonymous Auth instance now has the new user.
-    //         return app.database().ref('users/' + user.uid).set(data);
-    //       })
-    //       .then(function() {
-    //         // Delete anonymnous user.
-    //         return anonymousUser.delete();
-    //       }).then(function() {
-    //         // Clear data in case a new user signs in, and the state change
-    //         // triggers.
-    //         data = null;
-    //         // FirebaseUI will reset and the UI cleared when this promise
-    //         // resolves.
-    //         // signInSuccessWithAuthResult will not run. Successful sign-in
-    //         // logic has to be run explicitly.
-    //         window.location.assign('<url-to-redirect-to-on-success>');
-    //       });
+            return false;
+          },
 
-    // }
-  }
-});
+          // signInFailure callback must be provided to handle merge conflicts which
+          // occur when an existing credential is linked to an anonymous user.
+          // signInFailure: function(error) {
+          //   // For merge conflicts, the error.code will be
+          //   // 'firebaseui/anonymous-upgrade-merge-conflict'.
+          //   if (error.code != 'firebaseui/anonymous-upgrade-merge-conflict') {
+          //     return Promise.resolve();
+          //   }
+          //   // The credential the user tried to sign in with.
+          //   var cred = error.credential;
+          //   // If using Firebase Realtime Database. The anonymous user data has to be
+          //   // copied to the non-anonymous user.
+          //   var app = firebase.app();
+          //   // Save anonymous user data first.
+          //   return app.database().ref('users/' + firebase.auth().currentUser.uid)
+          //       .once('value')
+          //       .then(function(snapshot) {
+          //         data = snapshot.val();
+          //         // This will trigger onAuthStateChanged listener which
+          //         // could trigger a redirect to another page.
+          //         // Ensure the upgrade flow is not interrupted by that callback
+          //         // and that this is given enough time to complete before
+          //         // redirection.
+          //         return firebase.auth().signInWithCredential(cred);
+          //       })
+          //       .then(function(user) {
+          //         // Original Anonymous Auth instance now has the new user.
+          //         return app.database().ref('users/' + user.uid).set(data);
+          //       })
+          //       .then(function() {
+          //         // Delete anonymnous user.
+          //         return anonymousUser.delete();
+          //       }).then(function() {
+          //         // Clear data in case a new user signs in, and the state change
+          //         // triggers.
+          //         data = null;
+          //         // FirebaseUI will reset and the UI cleared when this promise
+          //         // resolves.
+          //         // signInSuccessWithAuthResult will not run. Successful sign-in
+          //         // logic has to be run explicitly.
+          //         window.location.assign('<url-to-redirect-to-on-success>');
+          //       });
+
+          // }
+        }
+      });
+    }
+  }, 3000);
+}
+var initApp = function () {
+  // document.getElementById('sign-in-with-redirect').addEventListener(
+  //     'click', signInWithRedirect);
+  // document.getElementById('sign-in-with-popup').addEventListener(
+  //     'click', signInWithPopup);
+  document.getElementById('sign-out').addEventListener('click', function () {
+    auth.signOut();
+    let user = {
+      fullName: "",
+      email: "",
+      photo: "",
+      provider: ""
+    }
+    store.commit('setUser', user);
+    document.getElementById('sign-out').style.display = 'none';
+    auth.signOut();
+    startUi();
+  });
+  document.getElementById('sign-out').style.display = 'none';
+  // document.getElementById('delete-account').addEventListener(
+  //     'click', function() {
+  //       deleteAccount();
+  //     });
+
+  // document.getElementById('recaptcha-normal').addEventListener(
+  //     'change', handleConfigChange);
+  // document.getElementById('recaptcha-invisible').addEventListener(
+  //     'change', handleConfigChange);
+  // // Check the selected reCAPTCHA mode.
+  // document.querySelector(
+  //     'input[name="recaptcha"][value="' + getRecaptchaMode() + '"]')
+  //     .checked = true;
+
+  // document.getElementById('email-signInMethod-password').addEventListener(
+  //     'change', handleConfigChange);
+  // document.getElementById('email-signInMethod-emailLink').addEventListener(
+  //     'change', handleConfigChange);
+  // // Check the selected email signInMethod mode.
+  // document.querySelector(
+  //     'input[name="emailSignInMethod"][value="' + getEmailSignInMethod() + '"]')
+  //     .checked = true;
+  // document.getElementById('email-disableSignUp-status').addEventListener(
+  //     'change', handleConfigChange);
+  // document.getElementById("email-disableSignUp-status").checked =
+  //     getDisableSignUpStatus();  
+  // document.getElementById('admin-restricted-operation-status').addEventListener(
+  //     'change', handleConfigChange);
+  // document.getElementById("admin-restricted-operation-status").checked =
+  //     getAdminRestrictedOperationStatus();  
+};
+startUi();
+window.addEventListener('load', initApp);
+
 
 // signInWithEmailAndPassword(auth, email, password)
 //   .then((userCredential) => {

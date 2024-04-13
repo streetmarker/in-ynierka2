@@ -9,19 +9,19 @@
       <a href="#login" class="btn btn-success btn-lg">Zaloguj się</a>
       <a href="#register" class="btn btn-info btn-lg">Zarejestruj się</a> -->
     </div>
-    <div id="features" class="row text-center">
-      <div class="col">
+    <div id="features" class="row">
+      <div class="jumbotron text-center">
         <h2>Planowanie zajęć</h2>
         <p>Zaplanuj swoje zajęcia z uczniami w prosty i wygodny sposób.</p>
       </div>
-      <div class="col">
+      <div class="jumbotron text-center">
         <h2>Aplikacja mobilna</h2>
         <p>
           Korzystaj z naszej aplikacji mobilnej, aby mieć dostęp do swojego
           konta zawsze i wszędzie.
         </p>
       </div>
-      <div class="col">
+      <div class="jumbotron text-center">
         <h2>Automatyzacja akcji</h2>
         <p>
           Automatyzuj umawianie, odwoływanie, przeplanowywanie zajęć oraz
