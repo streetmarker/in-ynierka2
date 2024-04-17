@@ -6,7 +6,7 @@ import firebase from 'firebase/compat/app';
 import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
 import store from './src/store/index';
-
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
@@ -25,27 +25,50 @@ const firebaseConfig = {
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
-
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 // Initialize Firebase Cloud Messaging and get a reference to the service
 export const messaging = getMessaging(app);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-// console.log(auth);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
-// console.log(firebase);
+export const token = getToken(messaging, {
+  vapidKey:
+    process.env.VUE_APP_VAPID_KEY,
+})
+  .then((currentToken) => {
+    if (currentToken) {
+      // Send the token to your server and update the UI if necessary
+      // ...
+      console.log(currentToken);
+      return currentToken;
+    } else {
+      // Show permission request UI
+      console.log(
+        "No registration token available. Request permission to generate one."
+      );
+      // ...
+    }
+  })
+  .catch((err) => {
+    console.log(`An error occurred while retrieving token - ${err}`);
+    // ...
+  });
+
+
 async function startUi() {
   setTimeout(() => {
-    console.log("start ui:", auth.currentUser);
+    // console.log("start ui:", auth.currentUser);
     if (auth.currentUser) {
       let formatDataLogged = {
+        id: auth.currentUser.uid,
         fullName: auth.currentUser.displayName,
         email: auth.currentUser.email,
         photo: auth.currentUser.photoURL,
-        provider: auth.currentUser.providerData.providerId
+        provider: auth.currentUser.providerData.providerId,
+        // role:
       }
       store.commit('setUser', formatDataLogged);
       document.getElementById('sign-out').style.display = 'block';
@@ -62,16 +85,35 @@ async function startUi() {
           signInSuccessWithAuthResult: function (authResult, redirectUrl) {
             // Process result. This will not trigger on merge conflicts.
             // On success redirect to signInSuccessUrl.
+            let uid = authResult.user.uid;
             let formatData = {
+              id: uid,
               fullName: authResult.user.displayName,
               email: authResult.user.email,
               photo: authResult.user.photoURL,
               provider: authResult.user.providerData.providerId
             }
-            console.log(redirectUrl);
             store.commit('setUser', formatData);
             document.getElementById('sign-out').style.display = 'block';
 
+            insertUserFirestore(uid, authResult);
+            // const docRef = doc(db, "user", uid);
+            // const docSnap = await getDoc(docRef);
+            // console.log('docSnap: ', docSnap);
+            // if (!!docSnap._document) {
+            //   console.log("Document data:", docSnap.data());
+            // } else {
+            //   // docSnap.data() will be undefined in this case
+            //   let data = {
+            //     id: uid,
+            //     fullName: authResult.user.displayName,
+            //     email: authResult.user.email,
+            //     registerDate: new Date(),
+            //     role: 'TODO',
+            //     tutorId: 99
+            //   };
+            //   setDoc(doc(db, "user", uid), data);
+            // }
             return false;
           },
 
@@ -122,7 +164,25 @@ async function startUi() {
         }
       });
     }
-  }, 3000);
+  }, 4000);
+}
+async function insertUserFirestore(uid, authResult) {
+  const docRef = doc(db, "user", uid);
+  const docSnap = await getDoc(docRef);
+  console.log('docSnap: ', docSnap);
+  if (!!docSnap._document) {
+    console.log("Document data:", docSnap.data());
+  } else {
+    // docSnap.data() will be undefined in this case
+    let data = {
+      id: uid,
+      fullName: authResult.user.displayName,
+      email: authResult.user.email,
+      registerDate: new Date(),
+      role: 'TODO'
+    };
+    setDoc(doc(db, "user", uid), data);
+  }
 }
 var initApp = function () {
   // document.getElementById('sign-in-with-redirect').addEventListener(
@@ -132,6 +192,7 @@ var initApp = function () {
   document.getElementById('sign-out').addEventListener('click', function () {
     auth.signOut();
     let user = {
+      id: "",
       fullName: "",
       email: "",
       photo: "",
@@ -178,70 +239,21 @@ startUi();
 window.addEventListener('load', initApp);
 
 
-// signInWithEmailAndPassword(auth, email, password)
-//   .then((userCredential) => {
-//     // Signed in 
-//     const user = userCredential.user;
-//     console.log(user);
-//   })
-//   .catch((error) => {
-//     const errorCode = error.code;
-//     const errorMessage = error.message;
-//     console.log(error);
-//   });
-// No redirect URL has been found. You must either specify a signInSuccessUrl 
-// in the configuration, pass in a redirect URL to the widget URL, or return 
-// false from the callback.  Dismiss
-// createUserWithEmailAndPassword(auth, email, password)
-//   .then((userCredential) => {
-//     // Signed up 
-//     const user = userCredential.user;
-//     console.log(user);
-//   })
-//   .catch((error) => {
-//     const errorCode = error.code;
-//     const errorMessage = error.message;
-//     console.log(error);
-//   });
 
-// signInWithEmailAndPassword(auth, email, password)
-//   .then((userCredential) => {
-//     // Signed in 
-//     const user = userCredential.user;
-//     console.log(user);
-//   })
-//   .catch((error) => {
-//     const errorCode = error.code;
-//     const errorMessage = error.message;
-//     console.log(error);
-//   });
-
-export const token = getToken(messaging, {
-  vapidKey:
-    "BN_Xiy-m8C2C6deXMpU1HWTf0sM29X64zEBn6z1t5mSBdpaZ2Z0lM1U0Qz7ITCHTuUcn4_Smb5wT6bPNO8d7BGc",
-})
-  .then((currentToken) => {
-    if (currentToken) {
-      // Send the token to your server and update the UI if necessary
-      // ...
-      console.log(currentToken);
-      return currentToken;
-    } else {
-      // Show permission request UI
-      console.log(
-        "No registration token available. Request permission to generate one."
-      );
-      // ...
-    }
-  })
-  .catch((err) => {
-    console.log(`An error occurred while retrieving token - ${err}`);
-    // ...
-  });
-
-onMessage(messaging, (payload) => {
+onMessage(messaging, async (payload) => {
   console.log(`Message received: ${payload}`);
-  appendMessage(payload);
+  setTimeout(() => {
+    appendMessage(payload);
+    let date = new Date().toLocaleString()
+    let data = {
+      recipientId: auth.currentUser.uid,
+      recipientFullName: auth.currentUser.fullName,
+      text: payload.notification.title,
+      status: 'recived',
+      reciveDate: date
+    };
+    setDoc(doc(db, "notification", date), data);
+  }, 5000);
 });
 
 // Add a message to the messages element.

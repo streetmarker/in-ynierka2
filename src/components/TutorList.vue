@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { db, token } from "../../firebaseInitializer";
+import { db, token, auth} from "../../firebaseInitializer";
 import {
   collection,
   addDoc,
@@ -62,6 +62,7 @@ export default {
         born: null,
         subject: "",
         level: "",
+        userId: ""
       },
       token: null,
       selectedTutor: null,
@@ -76,8 +77,9 @@ export default {
       this.token = await token;
     },
     async addTutor() {
+      this.newTutor.userId = auth.currentUser.uid // TODO docelowo zaczytywane na formularzu rejestracyjym
       try {
-        await addDoc(collection(db, "users"), this.newTutor);
+        await addDoc(collection(db, "tutor"), this.newTutor);
         console.log("Nowy korepetytor został dodany.");
         this.newTutor = {
           first: "",
@@ -85,6 +87,7 @@ export default {
           born: null,
           subject: "",
           level: "",
+          userId: ""
         }; // Czyść formularz po dodaniu
         await this.getTutors(); // Odśwież listę korepetytorów po dodaniu
       } catch (error) {
@@ -93,7 +96,7 @@ export default {
     },
     async getTutors() {
       this.tutors = [];
-      const querySnapshot = await getDocs(collection(db, "users"));
+      const querySnapshot = await getDocs(collection(db, "tutor"));
       querySnapshot.forEach((doc) => {
         console.log(`${doc.id} => ${doc.data()}`);
         let formatData = { id: doc.id, data: doc.data() };
@@ -113,7 +116,7 @@ export default {
     async deleteTutor() {
       try {
         if (this.selectedTutor) {
-          await deleteDoc(doc(db, "users", this.selectedTutor.id));
+          await deleteDoc(doc(db, "tutor", this.selectedTutor.id));
           console.log("Korepetytor został usunięty.");
           this.selectedTutor = null;
           await this.getTutors(); // Odśwież listę korepetytorów po usunięciu

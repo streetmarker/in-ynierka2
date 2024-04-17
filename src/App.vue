@@ -5,7 +5,7 @@
       <router-link to="/">Home</router-link> |
       <!-- <router-link to="/login">Login</router-link> | -->
       <!-- <router-link to="/admin">admin[TODO]</router-link> | -->
-      <!-- <router-link to="/visit">visit[TODO]</router-link> | -->
+      <router-link to="/visit">Umów wizytę</router-link> |
       <router-link to="/panel">Panel klienta</router-link> |
       <router-link to="/tutor-list">Lista korepetytorów</router-link> |
       <!-- <router-link to="/tutor-admin">tutor-admin[TODO]</router-link> | -->
@@ -24,7 +24,6 @@
     <!-- <button @click="test">TEST</button> -->
 
     <div id="firebaseui-auth-container"></div>
-    <dialog v-if="showLoginDialog"></dialog>
     <!-- <br />
   <div class="container">
     <div class="row">
@@ -44,7 +43,6 @@
 <script>
 import { db } from "../firebaseInitializer";
 import { collection, addDoc } from "firebase/firestore";
-import { loadScript } from "@paypal/paypal-js";
 // import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
 // import firebase from 'firebase/compat/app';
@@ -66,8 +64,7 @@ export default {
   beforeMount() {
     // this.initLogs();
     this.requestPermission();
-    this.logEntry();
-    // this.initPaypal();
+    // this.logEntry();
   },
   methods: {
     async initPaypal() {
