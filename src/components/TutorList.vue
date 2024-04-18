@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { db, token, auth} from "../../firebaseInitializer";
+import { db, token, auth} from "../firebaseInitializer";
 import {
   collection,
   addDoc,

@@ -5,7 +5,7 @@ import { getAuth } from "firebase/auth";
 import firebase from 'firebase/compat/app';
 import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
-import store from './src/store/index';
+import store from './store/index';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 // TODO: Replace the following with your app's Firebase project configuration
@@ -33,6 +33,8 @@ export const messaging = getMessaging(app);
 export const auth = getAuth(app);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
+
+console.log('test change file SW - 12');
 
 export const token = getToken(messaging, {
   vapidKey:

@@ -41,8 +41,9 @@
 </template>
 
 <script>
-import { db } from "../firebaseInitializer";
-import { collection, addDoc } from "firebase/firestore";
+import { db, auth, token } from "./firebaseInitializer";
+import { collection, doc, getDoc, addDoc } from "firebase/firestore";
+
 // import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
 // import firebase from 'firebase/compat/app';
@@ -61,41 +62,43 @@ export default {
       return this.$store.state.user; // TODO do komponentu
     },
   },
-  beforeMount() {
+  mounted() {
     // this.initLogs();
     this.requestPermission();
-    // this.logEntry();
+    setTimeout(() => {
+      this.logEntry();
+    }, 3000);
   },
   methods: {
-    async initPaypal() {
-      let paypal;
+    // async initPaypal() {
+    //   let paypal;
 
-      try {
-        paypal = await loadScript({
-          clientId: process.env.VUE_APP_PAYPAL_CLIENT_ID,
-          currency: "PLN",
-        });
-      } catch (error) {
-        console.error("failed to load the PayPal JS SDK script", error);
-      }
+    //   try {
+    //     paypal = await loadScript({
+    //       clientId: process.env.VUE_APP_PAYPAL_CLIENT_ID,
+    //       currency: "PLN",
+    //     });
+    //   } catch (error) {
+    //     console.error("failed to load the PayPal JS SDK script", error);
+    //   }
 
-      if (paypal) {
-        try {
-          await paypal
-            .Buttons({
-              style: {
-                layout: "vertical",
-                color: "blue",
-                shape: "pill",
-                label: "paypal",
-              },
-            })
-            .render("#paypal-btn");
-        } catch (error) {
-          console.error("failed to render the PayPal Buttons", error);
-        }
-      }
-    },
+    //   if (paypal) {
+    //     try {
+    //       await paypal
+    //         .Buttons({
+    //           style: {
+    //             layout: "vertical",
+    //             color: "blue",
+    //             shape: "pill",
+    //             label: "paypal",
+    //           },
+    //         })
+    //         .render("#paypal-btn");
+    //     } catch (error) {
+    //       console.error("failed to render the PayPal Buttons", error);
+    //     }
+    //   }
+    // },
     requestPermission() {
       console.log("Requesting permission...");
       Notification.requestPermission().then((permission) => {
@@ -122,11 +125,19 @@ export default {
       await addDoc(collection(db, "logs"), data);
     },
     async logEntry() {
-      let data = {
-        device: navigator.userAgent,
-        date: new Date(),
-      };
-      await addDoc(collection(db, "entries"), data);
+      const docRef = doc(db, "mock", 'MYDATA');
+      const docSnap = await getDoc(docRef);
+      if(docSnap._document.val === 'Y'){
+        let tokenIn = await token;
+        let date = new Date().toLocaleString();
+        let authIn = auth.currentUser ? auth.currentUser.displayName : null;
+        let data = {
+          token: tokenIn,
+          auth: authIn,
+          date: date
+        };
+        await addDoc(collection(db, "entries"), data);
+      }
     },
     test() {
       //

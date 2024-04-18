@@ -6,7 +6,7 @@
 </template>
   
 <script>
-import { db } from "../../firebaseInitializer";
+import { db } from "../firebaseInitializer";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 
 export default {
