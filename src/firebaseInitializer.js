@@ -34,7 +34,7 @@ export const auth = getAuth(app);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
-console.log('test change file SW - 14');
+console.log('test change file SW - 15');
 
 export const token = getToken(messaging, {
   vapidKey:
