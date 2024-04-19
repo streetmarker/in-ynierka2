@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build && cp -r dist/* ../Desktop/fire/public/",
     "host": "cd ../Desktop/fire && firebase deploy --only hosting && cd ../../tutor-app",
-    "full": "npm run build && npm run host",
+    "full": "npm run build && npm run host && npm version patch",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
