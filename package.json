@@ -7,13 +7,16 @@
     "commit": "git add . && git commit -m 'fix' && git push",
     "build": "vue-cli-service build && cp -r dist/* ../Desktop/fire/public/",
     "host": "cd ../Desktop/fire && firebase deploy --only hosting && cd ../../tutor-app",
-    "full": "npm run build && npm run host && npm run commit",
+    "full": "npm run build && npm run host",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@coreui/coreui": "^5.0.0",
+    "@coreui/vue": "^5.0.0",
     "@paypal/paypal-js": "^8.0.4",
     "axios": "^1.6.8",
+    "bootstrap": "^5.3.3",
     "core-js": "^3.8.3",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

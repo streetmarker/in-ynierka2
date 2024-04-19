@@ -73,7 +73,17 @@ async function startUi() {
         // role:
       }
       store.commit('setUser', formatDataLogged);
-      document.getElementById('sign-out').style.display = 'block';
+      (async () => {
+        try {
+          const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
+          store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
+        } catch (error) {
+          console.error('Błąd podczas pobierania roli z Firestore:', error);
+        }
+      })();
+
+      document.getElementById('sign-out').style.display = 'initial';
+      document.getElementById('sign-in').style.display = 'none';
     } else {
       ui.start('#firebaseui-auth-container', {
         // signInSuccessUrl: '/',
@@ -95,10 +105,28 @@ async function startUi() {
               photo: authResult.user.photoURL,
               provider: authResult.user.providerData.providerId
             }
-            store.commit('setUser', formatData);
-            document.getElementById('sign-out').style.display = 'block';
+            // console.log('STATE TMP ROLE', store.getters.getTmpRole);
+            let tmpRole = store.getters.getTmpRole ; // first time login
+            insertUserFirestore(uid, authResult, tmpRole);
+            if(!!tmpRole){
+              (async () => {
+                try {
+                  const roleFromFirestore = await getUserRoleFirebase(uid);
+                  store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
+                } catch (error) {
+                  console.error('Błąd podczas pobierania roli z Firestore:', error);
+                }
+              })();
+            }
+            else {
+              store.commit('setUserRole', { type: tmpRole, loggedIn: true });
+            }
 
-            insertUserFirestore(uid, authResult);
+            store.commit('setUser', formatData);
+
+            document.getElementById('sign-out').style.display = 'initial';
+            document.getElementById('sign-in').style.display = 'none';
+
             // const docRef = doc(db, "user", uid);
             // const docSnap = await getDoc(docRef);
             // console.log('docSnap: ', docSnap);
@@ -168,7 +196,7 @@ async function startUi() {
     }
   }, 4000);
 }
-async function insertUserFirestore(uid, authResult) {
+async function insertUserFirestore(uid, authResult, tmpRole) {
   const docRef = doc(db, "user", uid);
   const docSnap = await getDoc(docRef);
   console.log('docSnap: ', docSnap);
@@ -181,10 +209,16 @@ async function insertUserFirestore(uid, authResult) {
       fullName: authResult.user.displayName,
       email: authResult.user.email,
       registerDate: new Date(),
-      role: 'TODO'
+      role: tmpRole
     };
     setDoc(doc(db, "user", uid), data);
   }
+}
+async function getUserRoleFirebase(uid) {
+  const docRef = doc(db, "user", uid); // get saved role
+  const docSnap = await getDoc(docRef);
+  console.log('get user role: ', docSnap.data());
+  return docSnap.data().role
 }
 var initApp = function () {
   // document.getElementById('sign-in-with-redirect').addEventListener(
@@ -201,11 +235,15 @@ var initApp = function () {
       provider: ""
     }
     store.commit('setUser', user);
+    store.commit('setUserRole', { type: '', loggedIn: false });
+
     document.getElementById('sign-out').style.display = 'none';
+    document.getElementById('sign-in').style.display = 'initial';
     auth.signOut();
     startUi();
   });
   document.getElementById('sign-out').style.display = 'none';
+  document.getElementById('sign-in').style.display = 'initial';
   // document.getElementById('delete-account').addEventListener(
   //     'click', function() {
   //       deleteAccount();

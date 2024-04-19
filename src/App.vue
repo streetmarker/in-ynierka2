@@ -1,17 +1,138 @@
+<script setup>
+import "@coreui/coreui/dist/css/coreui.min.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import {
+  CNavbar,
+  CContainer,
+  CNavbarBrand,
+  CNavbarToggler,
+  CCollapse,
+  CNavbarNav,
+  CNavItem,
+  CNavLink,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
+  CDropdownDivider,
+  CForm,
+  CFormInput,
+  CButton,
+  CCloseButton,
+  COffcanvas,
+  COffcanvasHeader,
+  COffcanvasTitle,
+  COffcanvasBody,
+} from "@coreui/vue";
+import { ref, watch } from "vue";
+const role = ref("C");
+
+watch(role, (newRole, oldRole) => {
+  console.log("tmpRole WATCH");
+  store.commit("setTmpRole", newRole);
+});
+</script>
+
 <template>
   <div>
     <div class="notification-bar" id="notificationBar"></div>
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <!-- <router-link to="/login">Login</router-link> | -->
-      <!-- <router-link to="/admin">admin[TODO]</router-link> | -->
-      <router-link to="/visit">Umów wizytę</router-link> |
-      <router-link to="/panel">Panel klienta</router-link> |
-      <router-link to="/tutor-list">Lista korepetytorów</router-link> |
-      <!-- <router-link to="/tutor-admin">tutor-admin[TODO]</router-link> | -->
-      <!-- <router-link to="/tutor-manager">tutor-manager[TODO]</router-link> -->
+    <!-- <CButton
+      color="primary"
+      @click="
+        () => {
+          visible = !visible;
+        }
+      "
+      >Logowanie / Rejestracja</CButton
+    > -->
+    <div v-if="!$store.state.role.loggedIn">
+    <COffcanvas
+      dark
+      placement="start"
+      :visible="visible"
+      @hide="
+        () => {
+          visible = !visible;
+        }
+      "
+    >
+      <COffcanvasHeader>
+        <COffcanvasTitle>Wybierz metodę logowania/rejestracji</COffcanvasTitle>
+        <CCloseButton
+          class="text-reset"
+          @click="
+            () => {
+              visible = false;
+            }
+          "
+        />
+      </COffcanvasHeader>
+      <COffcanvasBody>
+        Wybierz swoją rolę
+        <select id="role" v-model="role">
+          <option value="C">Uczeń</option>
+          <option value="T">Korepetytor</option>
+        </select>
+        <!-- <CButton
+          @click="selectRole()"
+          >Zapisz wybór</CButton
+        > -->
+        <div id="firebaseui-auth-container"></div>
+      </COffcanvasBody>
+      <CButton
+        color="primary"
+        @click="
+          () => {
+            visible = !visible;
+          }
+        "
+        >Powrót</CButton
+      >
+    </COffcanvas>
+    </div>
 
-      <button id="sign-out">Wyloguj się</button>
+    <nav>
+      <b>Tutor App</b> |
+      <!-- <router-link to="/">Home</router-link> |
+      <router-link to="/login">Login</router-link> | -->
+      <!-- TODO Manager do zmiany - zarządzanie wizytami i do zmiany na dg ofertami-->
+      <div v-if="clientAccess">
+        <router-link v-if="clientAccess" to="/panel">Panel klienta</router-link>
+        |
+        <router-link v-if="clientAccess" to="/visit">Umów wizytę</router-link> |
+        <router-link v-if="clientAccess" to="/tutor-list"
+          >Lista korepetytorów</router-link
+        >
+        |
+      </div>
+<!--  -->
+      <div v-if="tutorAccess">
+        <router-link v-if="tutorAccess" to="/tutor-manager"
+          >Zarządzanie wizytami</router-link
+        >
+        |
+        <router-link v-if="tutorAccess" to="/tutor-admin"
+          >Zarządzanie ofertą</router-link
+        >
+        |
+      </div>
+<!--  -->
+      <div v-if="adminAccess">
+        <router-link v-if="adminAccess" to="/admin"
+          >Administracja aplikacją</router-link
+        >
+        |
+      </div>
+      <CButton
+        id="sign-in"
+        @click="
+          () => {
+            visible = !visible;
+          }
+        "
+        ><u>Logowanie / Rejestracja</u></CButton
+      >
+      <CButton id="sign-out"><b><i>{{ $store.state.user.fullName }}</i></b> <u>Wyloguj się</u></CButton>
     </nav>
     <div class="container">
       <div id="features" class="row text-center">
@@ -21,84 +142,62 @@
       </div>
     </div>
     <!-- <button @click="dumpLogs">DUMP</button> -->
-    <!-- <button @click="test">TEST</button> -->
-
-    <div id="firebaseui-auth-container"></div>
-    <!-- <br />
-  <div class="container">
-    <div class="row">
-      <div class="col-sm"></div>
-      <div class="col-sm">
-        <div id="paypal-btn"></div>
-      </div>
-      <div class="col-sm"></div>
-    </div>
-  </div>
-  <br /> -->
-
-    <!-- {{ logs }} -->
+    <!-- <button @click="test">TEST</button>
+    <input type="text" v-model="role" />
+    <select id="subject" v-model="loggedInFront">
+      <option value="true">true</option>
+      <option value="false">false</option>
+    </select>
+    {{ role }} | {{ loggedInFront }} -->
   </div>
 </template>
 
 <script>
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
-
-// import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-
-// import firebase from 'firebase/compat/app';
-// import * as firebaseui from 'firebaseui'
-// import 'firebaseui/dist/firebaseui.css'
+import store from "./store/index"; // TODO TMP
 
 export default {
   data() {
     return {
       logs: [],
       showLoginDialog: false,
+      visible: false,
+      role: "C",
+      loggedInFront: false,
     };
   },
   computed: {
-    userData() {
-      return this.$store.state.user; // TODO do komponentu
+    clientAccess() {
+      return (
+        this.$store.state.role.loggedIn == true &&
+        this.$store.state.role.type == "C"
+      );
     },
+    tutorAccess() {
+      return (
+        this.$store.state.role.loggedIn == true &&
+        this.$store.state.role.type == "T"
+      );
+    },
+    adminAccess() {
+      return (
+        this.$store.state.role.loggedIn == true &&
+        this.$store.state.role.type == "A"
+      );
+    },
+    // tmpRole() {
+
+    // }
   },
   mounted() {
     // this.initLogs();
     this.requestPermission();
-    setTimeout(() => {
-      this.logEntry();
-    }, 3000);
+    // setTimeout(() => {
+    //   this.logEntry();
+    // }, 3000);
   },
   methods: {
-    // async initPaypal() {
-    //   let paypal;
-
-    //   try {
-    //     paypal = await loadScript({
-    //       clientId: process.env.VUE_APP_PAYPAL_CLIENT_ID,
-    //       currency: "PLN",
-    //     });
-    //   } catch (error) {
-    //     console.error("failed to load the PayPal JS SDK script", error);
-    //   }
-
-    //   if (paypal) {
-    //     try {
-    //       await paypal
-    //         .Buttons({
-    //           style: {
-    //             layout: "vertical",
-    //             color: "blue",
-    //             shape: "pill",
-    //             label: "paypal",
-    //           },
-    //         })
-    //         .render("#paypal-btn");
-    //     } catch (error) {
-    //       console.error("failed to render the PayPal Buttons", error);
-    //     }
-    //   }
-    // },
     requestPermission() {
       console.log("Requesting permission...");
       Notification.requestPermission().then((permission) => {
@@ -125,22 +224,25 @@ export default {
       await addDoc(collection(db, "logs"), data);
     },
     async logEntry() {
-      const docRef = doc(db, "mock", 'MYDATA');
+      const docRef = doc(db, "mock", "MYDATA");
       const docSnap = await getDoc(docRef);
-      if(docSnap._document.val === 'Y'){
+      if (docSnap._document.val === "Y") {
         let tokenIn = await token;
         let date = new Date().toLocaleString();
         let authIn = auth.currentUser ? auth.currentUser.displayName : null;
         let data = {
           token: tokenIn,
           auth: authIn,
-          date: date
+          date: date,
         };
         await addDoc(collection(db, "entries"), data);
       }
     },
     test() {
       //
+      let role = this.role;
+      let logged = this.loggedInFront;
+      store.commit("setUserRole", { type: role, loggedIn: logged });
     },
   },
 };
