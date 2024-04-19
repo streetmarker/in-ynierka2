@@ -34,7 +34,7 @@ export const auth = getAuth(app);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
-console.log('test change file SW - 13');
+console.log('test change file SW - 14');
 
 export const token = getToken(messaging, {
   vapidKey:
@@ -80,7 +80,7 @@ async function startUi() {
         signInFlow: 'popup',
         signInOptions: [
           firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-          // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+          //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
           firebase.auth.EmailAuthProvider.PROVIDER_ID
         ],
         callbacks: {
