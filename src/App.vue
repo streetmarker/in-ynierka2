@@ -92,7 +92,7 @@ watch(role, (newRole, oldRole) => {
     </div>
 
     <nav>
-      <b>Tutor App</b> |
+      <router-link to="/"><b>Tutor App</b></router-link> |
       <!-- <router-link to="/">Home</router-link> |
       <router-link to="/login">Login</router-link> | -->
       <!-- TODO Manager do zmiany - zarządzanie wizytami i do zmiany na dg ofertami-->
@@ -132,7 +132,8 @@ watch(role, (newRole, oldRole) => {
         "
         ><u>Logowanie / Rejestracja</u></CButton
       >
-      <CButton id="sign-out"><b><i>{{ $store.state.user.fullName }}</i></b> <u>Wyloguj się</u></CButton>
+      <b><i>{{ $store.state.user.fullName }}</i></b>
+      <CButton id="sign-out"> <u>Wyloguj się</u></CButton>
     </nav>
     <div class="container">
       <div id="features" class="row text-center">
@@ -149,6 +150,7 @@ watch(role, (newRole, oldRole) => {
       <option value="false">false</option>
     </select>
     {{ role }} | {{ loggedInFront }} -->
+    <!-- <DarkModeBtn /> -->
   </div>
 </template>
 
@@ -156,8 +158,12 @@ watch(role, (newRole, oldRole) => {
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
+// import DarkModeBtn from './components/DarkModeBtn.vue' // TODO
 
 export default {
+  // components: {
+  //   DarkModeBtn
+  // },
   data() {
     return {
       logs: [],

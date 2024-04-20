@@ -5,9 +5,9 @@ import ClientPanelPage from "../views/ClientPanelPage.vue";
 import ClientTutorListPage from "../views/ClientTutorListPage.vue";
 import TutorAdmin from "../views/TutorAdmin.vue";
 import TutorManager from "../views/TutorManager.vue";
-import XLoginPage from "../views/XLoginPage.vue";
 import XWelcomePage from "../views/XWelcomePage.vue";
 import XLandingPage from "../views/XLandingPage.vue";
+import TutorRegister from "../views/TutorRegister.vue";
 
 const routes = [
   {
@@ -46,14 +46,14 @@ const routes = [
     component: TutorManager,
   },
   {
-    path: "/login",
-    name: "login",
-    component: XLoginPage,
-  },
-  {
     path: "/welcome",
     name: "welcome",
     component: XWelcomePage,
+  },
+  {
+    path: "/tutor-register",
+    name: "tutor-register",
+    component: TutorRegister,
   },
 ];
 

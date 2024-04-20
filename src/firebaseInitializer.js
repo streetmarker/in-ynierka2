@@ -7,6 +7,7 @@ import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
 import store from './store/index';
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import Loader from '../public/loader'
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
@@ -61,6 +62,10 @@ export const token = getToken(messaging, {
 
 
 async function startUi() {
+  // document.getElementById('loading').style.display = 'initial';
+  // modalLoading.init(true);
+  Loader.open();
+
   setTimeout(() => {
     // console.log("start ui:", auth.currentUser);
     if (auth.currentUser) {
@@ -106,44 +111,30 @@ async function startUi() {
               provider: authResult.user.providerData.providerId
             }
             // console.log('STATE TMP ROLE', store.getters.getTmpRole);
-            let tmpRole = store.getters.getTmpRole ; // first time login
-            insertUserFirestore(uid, authResult, tmpRole);
-            if(!!tmpRole){
-              (async () => {
-                try {
-                  const roleFromFirestore = await getUserRoleFirebase(uid);
+            let tmpRole = store.getters.getTmpRole; // first time login
+            (async () => {
+              try {
+                const roleFromFirestore = await getUserRoleFirebase(uid); // pobieramy by porównać dane na front i w db
+
+                if (tmpRole.length == 0 || tmpRole != roleFromFirestore) { // sprawdzenie czy zaznaczono jak w db jeżeli jest i uzupełnienie
                   store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
-                } catch (error) {
-                  console.error('Błąd podczas pobierania roli z Firestore:', error);
                 }
-              })();
-            }
-            else {
-              store.commit('setUserRole', { type: tmpRole, loggedIn: true });
-            }
+                else {
+                  store.commit('setUserRole', { type: tmpRole, loggedIn: true });
+                }
+              } catch (error) {
+                console.error('Błąd podczas pobierania roli z Firestore:', error);
+                store.commit('setUserRole', { type: tmpRole, loggedIn: true });
+              }
+            })();
+
+            insertUserFirestore(uid, authResult, tmpRole);
 
             store.commit('setUser', formatData);
 
             document.getElementById('sign-out').style.display = 'initial';
             document.getElementById('sign-in').style.display = 'none';
 
-            // const docRef = doc(db, "user", uid);
-            // const docSnap = await getDoc(docRef);
-            // console.log('docSnap: ', docSnap);
-            // if (!!docSnap._document) {
-            //   console.log("Document data:", docSnap.data());
-            // } else {
-            //   // docSnap.data() will be undefined in this case
-            //   let data = {
-            //     id: uid,
-            //     fullName: authResult.user.displayName,
-            //     email: authResult.user.email,
-            //     registerDate: new Date(),
-            //     role: 'TODO',
-            //     tutorId: 99
-            //   };
-            //   setDoc(doc(db, "user", uid), data);
-            // }
             return false;
           },
 
@@ -194,6 +185,24 @@ async function startUi() {
         }
       });
     }
+    // TUTOR ONLY PART
+    // TODO
+    // const userRole = store.getters.getUserRole;
+    // if (userRole.type == 'T') {
+    //   (async () => {
+    //     try {
+    //       const tutorData = await getTutorFirebase(uid);
+    //       store.commit('setTutor', tutorData);
+    //       if (tutorData.active == false) {
+    //         router.push('/tutor-register'); // TODO blokada routingu
+    //       }
+    //     } catch (error) {
+    //       console.error('Błąd podczas pobierania tutor z Firestore:', error);
+    //     }
+    //   })();
+    // }
+    //
+    Loader.close();
   }, 4000);
 }
 async function insertUserFirestore(uid, authResult, tmpRole) {
@@ -220,6 +229,12 @@ async function getUserRoleFirebase(uid) {
   console.log('get user role: ', docSnap.data());
   return docSnap.data().role
 }
+async function getTutorFirebase(uid) { // pobranie po userId
+  const docRef = doc(db, "tutor", uid); // get saved role
+  const docSnap = await getDoc(docRef);
+  console.log('get tutor: ', docSnap.data());
+  return docSnap.data()
+}
 var initApp = function () {
   // document.getElementById('sign-in-with-redirect').addEventListener(
   //     'click', signInWithRedirect);
@@ -227,14 +242,15 @@ var initApp = function () {
   //     'click', signInWithPopup);
   document.getElementById('sign-out').addEventListener('click', function () {
     auth.signOut();
-    let user = {
-      id: "",
-      fullName: "",
-      email: "",
-      photo: "",
-      provider: ""
-    }
-    store.commit('setUser', user);
+    // let user = {
+    //   id: "",
+    //   fullName: "",
+    //   email: "",
+    //   photo: "",
+    //   provider: ""
+    // }
+    // store.commit('setUser', user); // TO DEL
+    store.commit('resetUser');
     store.commit('setUserRole', { type: '', loggedIn: false });
 
     document.getElementById('sign-out').style.display = 'none';
