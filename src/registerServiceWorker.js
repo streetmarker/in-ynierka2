@@ -10,8 +10,15 @@ if (process.env.NODE_ENV === "production") {
         "For more details, visit https://goo.gl/AFskqB"
       );
     },
-    registered() {
+    registered(registration) {
       console.log("Service worker has been registered.");
+      registration.pushManager.getSubscription()
+        .then(function (subscription) {
+          console.log('Service worker pushManager: ', subscription);
+          if (subscription === null) {
+            subscribeUser(registration);
+          }
+        });
     },
     cached() {
       console.log("Content has been cached for offline use.");
@@ -24,28 +31,8 @@ if (process.env.NODE_ENV === "production") {
 
       // Wyświetl powiadomienie dla użytkownika o dostępności aktualizacji
       if (confirm("Dostępna jest aktualizacja. Pobrać nową wersję?")) {
-        // navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING'});
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-
-        // navigator.serviceWorker.getRegistration(`${process.env.BASE_URL}service-worker.js`).then(function(registration) {
-        //   if (registration && registration.active) {
-        //     registration.active.skipWaiting();
-            //.postMessage({ action: "skipWaiting" });
-            // Sprawdź, czy mamy dostęp do kontrolera serwisowego worker-a
-// if (navigator.serviceWorker.controller) {
-//   // Wyślij wiadomość do kontrolera
-//   navigator.serviceWorker.controller.postMessage({ action: "skipWaiting" });
-// }
-
-          }
-        // });
-        
-        // Jeśli użytkownik zaakceptuje aktualizację, wykonaj poniższe operacje
-        // registration.waiting.postMessage({ action: "skipWaiting" });
-      // if (confirm("New version available. Load new version?")) {
-      //   localStorage.setItem('newVersionAvailable', 'true');
-      //   window.location.reload();
-      // }
+      }
     },
     offline() {
       console.log(
@@ -63,16 +50,12 @@ if (process.env.NODE_ENV === "production") {
     refreshing = true;
   });
 
-//   navigator.serviceWorker.addEventListener('fetch', function(event) {
-//     event.respondWith(
-//         caches.match(event.request).then(function(response) {
-//             if (localStorage.getItem('newVersionAvailable') === 'true') {
-//                 localStorage.removeItem('newVersionAvailable');
-//                 return fetch(event.request);
-//             }
-//             return response || fetch(event.request);
-//         })
-//     );
-// });
-
+  self.addEventListener('pushsubscriptionchange', e => { 
+    e.waitUntil(registration.pushManager.subscribe(e.oldSubscription.options) 
+  .then(subscription => { 
+    // TODO: Send new subscription to application server
+    console.log('pushsubscriptionchange: ', subscription);
+  })); 
+});
 }
+

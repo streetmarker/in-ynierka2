@@ -8,6 +8,7 @@ import 'firebaseui/dist/firebaseui.css'
 import store from './store/index';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import Loader from '../public/loader'
+import * as idb from './idb'
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
@@ -23,7 +24,12 @@ const firebaseConfig = {
   appId: process.env.VUE_APP_APP_ID,
   measurementId: process.env.VUE_APP_MEASUREMENT_ID,
 };
-
+console.log(idb);
+var dbPromise  = idb.open('tutors', 1, function (db) {
+  if (!db.objectStoreNames.contains('tutor')){
+    db.createObjectStore('tutor', {keyPath: 'id'})
+  }
+})
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
@@ -78,7 +84,25 @@ async function startUi() {
         // role:
       }
       store.commit('setUser', formatDataLogged);
+      // dbPromise.then(function(db) {
+      //   var tx = db.transaction('tutor', 'readwrite');
+      //   var store = tx.objectStore('tutor');
+      //   store.put(formatDataLogged);
+      //   return tx.complete;
+      // })
       (async () => {
+        try {
+      var dbPromiseIn = await dbPromise;
+      var tx = dbPromiseIn.transaction('tutor', 'readwrite');
+      var storeDb = tx.objectStore('tutor');
+      storeDb.put(formatDataLogged);
+      console.log('add to idb: ',tx.complete);
+    } catch (error) {
+      console.error('Błąd podczas pobierania roli z Firestore:', error);
+    }
+  })();
+
+        (async () => {
         try {
           const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
           store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
