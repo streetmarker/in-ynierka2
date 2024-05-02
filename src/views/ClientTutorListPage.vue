@@ -6,7 +6,7 @@
 
 <script>
 // @ is an alias to /src
-import TutorsList from "@/components/TutorList.vue";
+import TutorsList from "@/components/TutorListNew.vue";
 
 export default {
   name: "HomeView",

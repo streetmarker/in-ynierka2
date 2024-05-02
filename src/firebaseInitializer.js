@@ -9,6 +9,8 @@ import store from './store/index';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import Loader from '../public/loader'
 import * as idb from './idb'
+import { getStorage, ref, getDownloadURL} from "firebase/storage";
+
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
@@ -16,7 +18,7 @@ const firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
   authDomain: process.env.VUE_APP_APP_DOMAIN,
   databaseURL:
-    process.env.VUE_APP_DATABASE_URL
+  process.env.VUE_APP_DATABASE_URL
   ,
   projectId: process.env.VUE_APP_PROJECT_ID,
   storageBucket: process.env.VUE_APP_STORAGE_BUCKET,
@@ -24,7 +26,7 @@ const firebaseConfig = {
   appId: process.env.VUE_APP_APP_ID,
   measurementId: process.env.VUE_APP_MEASUREMENT_ID,
 };
-console.log(idb);
+// console.log(idb);
 var dbPromise  = idb.open('tutors', 1, function (db) {
   if (!db.objectStoreNames.contains('tutor')){
     db.createObjectStore('tutor', {keyPath: 'id'})
@@ -41,7 +43,9 @@ export const auth = getAuth(app);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
-console.log('test change file SW - 15');
+export const storage = getStorage();
+
+// console.log('test change file SW - 15');
 
 export const token = getToken(messaging, {
   vapidKey:

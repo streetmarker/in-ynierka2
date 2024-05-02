@@ -23,7 +23,9 @@
         </option>
         <option value="Studia">Studia</option>
       </select>
+      Stawka
       <input type="number" id="hourRate" v-model="newTutor.hourRate" required />
+      Opis
       <input
         type="text"
         id="description"
@@ -67,7 +69,7 @@ export default {
     async addTutor() {
       this.newTutor.userId = auth.currentUser.uid; // TODO docelowo zaczytywane na formularzu rejestracyjym
       try {
-        await addDoc(collection(db, "tutor"), this.newTutor);
+        await addDoc(collection(db, "tutor"), this.newTutor); // TODO FIX rozdział na user i tutor
         console.log("Nowy korepetytor (niezatwierdzony) został dodany.");
       } catch (error) {
         console.error("Błąd podczas rejestracji korepetytora:", error);

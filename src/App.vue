@@ -23,6 +23,12 @@ import {
   COffcanvasHeader,
   COffcanvasTitle,
   COffcanvasBody,
+  CCard,
+  CCardImage,
+  CCardBody,
+  CCardTitle,
+  CCardText,
+  
 } from "@coreui/vue";
 import { ref, watch } from "vue";
 const role = ref("C");
@@ -151,6 +157,7 @@ watch(role, (newRole, oldRole) => {
     </select>
     {{ role }} | {{ loggedInFront }} -->
     <!-- <DarkModeBtn /> -->
+    <!-- <img id="myimg"> -->
   </div>
 </template>
 
