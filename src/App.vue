@@ -2,32 +2,12 @@
 import "@coreui/coreui/dist/css/coreui.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
-  CNavbar,
-  CContainer,
-  CNavbarBrand,
-  CNavbarToggler,
-  CCollapse,
-  CNavbarNav,
-  CNavItem,
-  CNavLink,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
-  CDropdownDivider,
-  CForm,
-  CFormInput,
   CButton,
   CCloseButton,
   COffcanvas,
   COffcanvasHeader,
   COffcanvasTitle,
   COffcanvasBody,
-  CCard,
-  CCardImage,
-  CCardBody,
-  CCardTitle,
-  CCardText,
   
 } from "@coreui/vue";
 import { ref, watch } from "vue";
@@ -266,7 +246,9 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  /* color: #2c3e50; */
+  /* background-color: #f0f0f0; */
+  background-image: radial-gradient(circle, #f0f0f0 0%, #61c75e 140%);
 }
 
 nav {

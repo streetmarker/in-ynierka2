@@ -1,18 +1,15 @@
 <template>
   <div id="app" class="container">
     <div class="jumbotron text-center">
-      <h1>Aplikacja do obsługi korepetycji</h1>
+      <h1>Aplikacja do zarządzania korepetycjami</h1>
       <p>
-        Planuj zajęcia, zarządzaj aplikacją mobilną, automatyzuj akcje i więcej!
+        Zarządzaj swoimi korepetycjami w łatwy sposób, gdziekolwiek jesteś.
       </p>
-      <!-- <a href="#features" class="btn btn-primary btn-lg">Zobacz możliwości</a>
-      <a href="#login" class="btn btn-success btn-lg">Zaloguj się</a>
-      <a href="#register" class="btn btn-info btn-lg">Zarejestruj się</a> -->
     </div>
     <div id="features" class="row">
       <div class="jumbotron text-center">
         <h2>Planowanie zajęć</h2>
-        <p>Zaplanuj swoje zajęcia z uczniami w prosty i wygodny sposób.</p>
+        <p>Zaplanuj i zarządzaj swoimi zajęciami w wygodny sposób.</p>
       </div>
       <div class="jumbotron text-center">
         <h2>Aplikacja mobilna</h2>
@@ -22,19 +19,30 @@
         </p>
       </div>
       <div class="jumbotron text-center">
-        <h2>Automatyzacja akcji</h2>
+        <h2>Automatyzacja procesów</h2>
         <p>
-          Automatyzuj umawianie, odwoływanie, przeplanowywanie zajęć oraz
-          płatności.
+          Automatyzuj umawianie, odwoływanie i zarządzanie płatnościami.
         </p>
       </div>
     </div>
-    <!-- <div id="login" class="text-center">
-      <h2>Zaloguj się</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <h2>Lista korepetytorów</h2>
+        <p>Tutaj możesz zobaczyć listę dostępnych korepetytorów.</p>
+        <!-- Dodaj zrzut ekranu z widokiem listy korepetytorów -->
+        <!-- <img style="width: 70vh;" src="https://firebasestorage.googleapis.com/v0/b/justfirstsite.appspot.com/o/front1.png?alt=media&token=86220662-3a15-4231-b00c-3e53f5c85682" alt="Lista korepetytorów"> -->
+      </div>
+      <div class="col-md-6">
+        <h2>Umówienie wizyty</h2>
+        <p>
+          Skorzystaj z aplikacji, aby umówić wizytę z wybranym korepetytorem.
+        </p>
+        <!-- Dodaj zrzut ekranu z przykładowym umówieniem wizyty -->
+        <!-- <img src="umowienie_wizyty.png" alt="Umówienie wizyty"> -->
+      </div>
     </div>
-    <div id="register" class="text-center">
-      <h2>Zarejestruj się</h2>
-    </div> -->
+    <img style="width: 70vh;" src="https://firebasestorage.googleapis.com/v0/b/justfirstsite.appspot.com/o/front1.png?alt=media&token=86220662-3a15-4231-b00c-3e53f5c85682" alt="Lista korepetytorów">
+
   </div>
 </template>
 
@@ -49,3 +57,13 @@ export default {
   // },
 };
 </script>
+
+
+<!-- <style scoped>
+/* Dodaj niestandardowe style CSS tutaj */
+#app {
+  background-color: #f0f0f0; /* Kolor tła */
+  background-image: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%); /* Gradient tła */
+  padding: 20px;
+}
+</style> -->

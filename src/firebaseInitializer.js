@@ -10,6 +10,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import Loader from '../public/loader'
 import * as idb from './idb'
 import { getStorage, ref, getDownloadURL} from "firebase/storage";
+import axios from 'axios';
 
 
 // TODO: Replace the following with your app's Firebase project configuration
@@ -32,6 +33,8 @@ var dbPromise  = idb.open('tutors', 1, function (db) {
     db.createObjectStore('tutor', {keyPath: 'id'})
   }
 })
+const startTime = performance.now()
+
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
@@ -44,6 +47,17 @@ export const auth = getAuth(app);
 export var ui = new firebaseui.auth.AuthUI(auth);
 
 export const storage = getStorage();
+
+const endTime = performance.now()
+const executionTime = endTime - startTime
+const logData = { name: 'init firebase', value: executionTime.toFixed(2)+"ms" }
+axios.post('http://localhost:3000/api/logs', logData)
+.then(response => {
+  console.log('Log sent successfully');
+})
+.catch(error => {
+  console.error('Error sending log:', error);
+});
 
 // console.log('test change file SW - 15');
 
@@ -94,17 +108,18 @@ async function startUi() {
       //   store.put(formatDataLogged);
       //   return tx.complete;
       // })
-      (async () => {
-        try {
-      var dbPromiseIn = await dbPromise;
-      var tx = dbPromiseIn.transaction('tutor', 'readwrite');
-      var storeDb = tx.objectStore('tutor');
-      storeDb.put(formatDataLogged);
-      console.log('add to idb: ',tx.complete);
-    } catch (error) {
-      console.error('Błąd podczas pobierania roli z Firestore:', error);
-    }
-  })();
+
+    //   (async () => {
+    //     try {
+    //   var dbPromiseIn = await dbPromise;
+    //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
+    //   var storeDb = tx.objectStore('tutor');
+    //   storeDb.put(formatDataLogged);
+    //   console.log('add to idb: ',tx.complete);
+    // } catch (error) {
+    //   console.error('Błąd podczas pobierania roli z Firestore:', error);
+    // }
+  // })();
 
         (async () => {
         try {

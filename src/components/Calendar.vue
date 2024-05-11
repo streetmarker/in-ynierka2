@@ -7,7 +7,7 @@
       @cell-click="handleDayClick" :show-all-day-events="true">
       <template v-slot:event="{ event }">
     <div :class="['custom-event', { 'all-day': event.allDay, 'split': event.split }]">
-      <button>Wizyta</button>
+      <button>✖️</button>
       <!-- <p class="title">{{ event.title }}</p>
       <p class="time">{{ event.start.toLocaleTimeString() }} - {{ event.end.toLocaleTimeString() }}</p> -->
     </div>
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import store from '../store/index';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css';
 
@@ -57,6 +58,7 @@ export default {
       date.setMinutes(0);
       this.selectedDate = date;
       this.formattedDate = date.toLocaleString();
+      store.commit('setTmpVisitDate', date)
       // Tutaj możesz dodać logikę obsługi kliknięcia na dzień kalendarza
       // Na przykład otwierając formularz do umawiania wizyt na wybraną datę
     },

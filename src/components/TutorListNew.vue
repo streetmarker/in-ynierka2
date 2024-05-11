@@ -17,7 +17,6 @@ import {
 <template>
   <div class="hello">
     <div v-if="tutors.length > 0">
-      <h3>Lista Korepetytorów:</h3>
       <ul>
         <li v-for="(tutor, index) in tutors" :key="index">
           <!-- <img :src="tutor.img" alt="">
@@ -29,10 +28,12 @@ import {
             <CImage width="50" height="50" :src="tutor.img" />
             <CCardBody>
               <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
-              <CCardText>(Ur.
-                {{ tutor.data.born }}), {{ tutor.data.subject }},
-                {{ tutor.data.level }}
-              </CCardText>
+              <CCardText>Wiek: {{ tutor.data.age }}<br>
+                Przedmiot:{{ tutor.data.subject }}<br>
+                Poziom: {{ tutor.data.level }} <br>
+                Stawka (h) {{ tutor.data.hourRate }} <br>
+                Bio: {{ tutor.data.description }}</CCardText>
+
               <!-- <CButton color="primary" href="#">Szczegóły</CButton> -->
               <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
             </CCardBody>
@@ -41,26 +42,35 @@ import {
       </ul>
     </div>
     <!-- <CButton color="primary" @click="() => { visibleTop = !visibleTop }">Toggle top offcanvas</CButton> -->
-  <COffcanvas placement="top" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
-    <COffcanvasHeader>
-      <div v-if="tutors.length > 0">
-        <COffcanvasTitle><CImage width="50" height="50" :src="selectedTutor.img" alt="" /> {{ selectedTutor.data.first }} {{ selectedTutor.data.last }}</COffcanvasTitle>
-      </div>
-      <!-- <COffcanvasTitle>{{ selectedTutor }}</COffcanvasTitle> -->
-      <CCloseButton class="text-reset" @click="() => { visibleTop = false }"/>
-    </COffcanvasHeader>
-    <COffcanvasBody>
-      Opis
-      Kalendaż
-      Umów wizytę
-      <Calendar />
-    </COffcanvasBody>
-  </COffcanvas>
+    <COffcanvas placement="start" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
+      <COffcanvasHeader>
+        <div v-if="tutors.length > 0">
+          <COffcanvasTitle>
+            <CImage width="50" height="50" :src="selectedTutor.img" alt="" /> {{ selectedTutor.data.first }} {{
+              selectedTutor.data.last }}
+          </COffcanvasTitle>
+        </div>
+        <CCloseButton class="text-reset" @click="() => { visibleTop = false }" />
+      </COffcanvasHeader>
+      <COffcanvasBody>
+        Wiek: {{ selectedTutor.data.age }}<br>
+        Przedmiot:{{ selectedTutor.data.subject }}<br>
+        Poziom: {{ selectedTutor.data.level }} <br>
+        Stawka (h) {{ selectedTutor.data.hourRate }} <br>
+        Bio: {{ selectedTutor.data.description }}<br>
+        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" />
+        <Calendar />
+      </COffcanvasBody>
+    </COffcanvas>
   </div>
 </template>
 
 <script>
 import Calendar from "./Calendar.vue";
+import { ref } from 'vue';
+import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
+
+// const dialogOpen = ref(false);
 import { db, storage } from "../firebaseInitializer";
 import {
   collection,
@@ -69,8 +79,7 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
-import { ref, getDownloadURL } from "firebase/storage";
-
+import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
 
 export default {
   name: "Dashboard",
@@ -79,17 +88,23 @@ export default {
   },
   data() {
     return {
+      visitDialog:false,
       tutors: [],
       selectedTutor: {
         id: '',
         data: {
-          last:'',
-          userId:'',
-          level:'',
-          first:'',
-          subject:'',
-          born:''},
-        img:''},
+          last: '',
+          userId: '',
+          level: '',
+          first: '',
+          subject: '',
+          born: '',
+          isActiveTutor: true,
+          description: '',
+          hourRate: 0
+        },
+        img: ''
+      },
       visibleTop: false,
     };
   },
@@ -97,29 +112,38 @@ export default {
     this.getTutors();
   },
   methods: {
+    // getVisitDialog() {
+    //   this.visitDialog = true;
+    // },
     async getTutors() {
       this.tutors = [];
       const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
       querySnapshot.forEach(async (doc) => {
         // console.log(`${doc.id} => ${doc.data()}`);
-        let data = doc.data()
+        let data = doc.data();
+
+        const today = new Date();
+        const born = new Date(data.born);
+        let mils = today - born;
+        data.age = Math.floor(mils / (1000 * 60 * 60 * 24 * 365.25));
+
         let img = await this.getProfileImg(data.userId);
         let formatData = { id: doc.id, data: data, img: img };
         this.tutors.push(formatData);
       });
     },
-    tutorDetails(tutor){
+    tutorDetails(tutor) {
       this.selectedTutor = tutor;
       this.visibleTop = true;
     },
     async getProfileImg(uid) {
 
-      let spaceRef = ref(storage, `profile-img/${uid}.jpg`);
-      let defRef = ref(storage, 'profile-img/default-img.png');
+      let spaceRef = firebaseRef(storage, `profile-img/${uid}.jpg`);
+      let defRef = firebaseRef(storage, 'profile-img/default-img.png');
       try {
         let url = await getDownloadURL(spaceRef)
           .then((url) => {
-  
+
             const xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
             xhr.onload = (event) => {
@@ -127,18 +151,18 @@ export default {
             };
             xhr.open('GET', url);
             xhr.send();
-  
+
             return url
           })
           .catch((error) => {
             // Handle any errors
           });
-          return url
-        
+        return url
+
       } catch (error) {
         let url = await getDownloadURL(defRef)
           .then((url) => {
-  
+
             const xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
             xhr.onload = (event) => {
@@ -146,13 +170,13 @@ export default {
             };
             xhr.open('GET', url);
             xhr.send();
-  
+
             return url
           })
           .catch((error) => {
             // Handle any errors
           });
-          return url
+        return url
       }
     }
   },

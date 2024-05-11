@@ -1,5 +1,13 @@
 <template>
-  <div class="home">
+  <div>
+    <h2>Dokonaj płatności za wizytę</h2><br>
+    Korepetytor: Agata Kwiatkowska<br>
+    Data: 15.05.2024<br>
+    Przedmiot: Matematyka<br>
+    Poziom: Studia (rozszerzenie) <br>
+    Stawka godzinowa: 80 <br>
+    Ilość godzin:  1 <br>
+    Do zapłaty: 80 zł<br>
 
     <div id="paypal-btn"></div>
 
@@ -29,7 +37,7 @@ export default {
       try {
         paypal = await loadScript({
           clientId: process.env.VUE_APP_PAYPAL_CLIENT_ID,
-          currency: "PLN",
+          currency: "PLN"
         });
       } catch (error) {
         console.error("failed to load the PayPal JS SDK script", error);

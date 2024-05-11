@@ -24,11 +24,15 @@ export default createStore({
       type: '',
       loggedIn: false
     },
-    tmpRole: '' // selected role on login 
+    tmpRole: '', // selected role on login 
+    tmpVisitDate: null
   },
   getters: {
     getTmpRole: (state) => {
       return state.tmpRole;
+    },
+    getTmpVisitDate: (state) => {
+      return state.tmpVisitDate;
     },
     getUserRole: (state) => {
       return state.role;
@@ -51,8 +55,10 @@ export default createStore({
       }
     },
     setTmpRole(state, tmpRole) {
-      console.log('setTmpRole: ', tmpRole);
       state.tmpRole = tmpRole;
+    },
+    setTmpVisitDate(state, tmpVisitDate) {
+      state.tmpVisitDate = tmpVisitDate;
     },
     setIsActiveTutor(state, isActive) {
       state.isActiveTutor = isActive;
