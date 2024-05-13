@@ -1,48 +1,77 @@
+<script setup>
+import {
+  CCard,
+  CImage,
+  CCardBody,
+  CCardTitle,
+  CCardText,
+  CButton,
+  COffcanvas,
+  COffcanvasHeader,
+  COffcanvasTitle,
+  CCloseButton,
+  COffcanvasBody
+} from "@coreui/vue";
+</script>
+
 <template>
   <div class="hello">
     <div v-if="tutors.length > 0">
-      <h3>Lista Korepetytorów:</h3>
       <ul>
         <li v-for="(tutor, index) in tutors" :key="index">
+          <!-- <img :src="tutor.img" alt="">
           {{ tutor.data.first }} {{ tutor.data.last }} (Ur.
           {{ tutor.data.born }}), {{ tutor.data.subject }},
-          {{ tutor.data.level }}
-          <button @click="confirmDeleteTutor(tutor)">Usuń</button>
+          {{ tutor.data.level }} -->
+
+          <CCard style="width: 18rem">
+            <CImage width="50" height="50" :src="tutor.img" />
+            <CCardBody>
+              <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
+              <CCardText>Wiek: {{ tutor.data.age }}<br>
+                Przedmiot:{{ tutor.data.subject }}<br>
+                Poziom: {{ tutor.data.level }} <br>
+                Stawka (h) {{ tutor.data.hourRate }} <br>
+                Bio: {{ tutor.data.description }}</CCardText>
+
+              <!-- <CButton color="primary" href="#">Szczegóły</CButton> -->
+              <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
+            </CCardBody>
+          </CCard>
         </li>
       </ul>
     </div>
-    <!-- <div> -->
-      <h3>Dodaj Korepetytora:</h3>
-      <form @submit.prevent="addTutor">
-        <label for="firstName">Imię:</label>
-        <input type="text" id="firstName" v-model="newTutor.first" required />
-        <label for="lastName">Nazwisko:</label>
-        <input type="text" id="lastName" v-model="newTutor.last" required />
-        <label for="birthDate">Data urodzenia:</label>
-        <input type="date" id="birthDate" v-model="newTutor.born" required />
-        <label for="subject">Przedmiot:</label>
-        <select id="subject" v-model="newTutor.subject" required>
-          <option value="Matematyka">Matematyka</option>
-          <option value="Fizyka">Fizyka</option>
-          <option value="Chemia">Chemia</option>
-        </select>
-        <label for="level">Poziom:</label>
-        <select id="level" v-model="newTutor.level" required>
-          <option value="Szkoła podstawowa">Szkoła podstawowa</option>
-          <option value="Szkoła średnia">Szkoła średnia</option>
-          <option value="Szkoła średnia rozszerzenie">
-            Szkoła średnia rozszerzenie
-          </option>
-          <option value="Studia">Studia</option>
-        </select>
-        <button type="submit">Dodaj Korepetytora</button>
-      </form>
-    <!-- </div> -->
+    <!-- <CButton color="primary" @click="() => { visibleTop = !visibleTop }">Toggle top offcanvas</CButton> -->
+    <COffcanvas placement="start" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
+      <COffcanvasHeader>
+        <div v-if="tutors.length > 0">
+          <COffcanvasTitle>
+            <CImage width="50" height="50" :src="selectedTutor.img" alt="" /> {{ selectedTutor.data.first }} {{
+              selectedTutor.data.last }}
+          </COffcanvasTitle>
+        </div>
+        <CCloseButton class="text-reset" @click="() => { visibleTop = false }" />
+      </COffcanvasHeader>
+      <COffcanvasBody>
+        Wiek: {{ selectedTutor.data.age }}<br>
+        Przedmiot:{{ selectedTutor.data.subject }}<br>
+        Poziom: {{ selectedTutor.data.level }} <br>
+        Stawka (h) {{ selectedTutor.data.hourRate }} <br>
+        Bio: {{ selectedTutor.data.description }}<br>
+        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" />
+        <Calendar />
+      </COffcanvasBody>
+    </COffcanvas>
   </div>
 </template>
 
 <script>
-import { db, token, auth} from "../firebaseInitializer";
+import Calendar from "./Calendar.vue";
+import { ref } from 'vue';
+import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
+
+// const dialogOpen = ref(false);
+import { db, storage } from "../firebaseInitializer";
 import {
   collection,
   addDoc,
@@ -50,81 +79,106 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
+import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
 
 export default {
   name: "Dashboard",
+  components: {
+    Calendar,
+  },
   data() {
     return {
+      visitDialog:false,
       tutors: [],
-      newTutor: {
-        first: "",
-        last: "",
-        born: null,
-        subject: "",
-        level: "",
-        userId: ""
+      selectedTutor: {
+        id: '',
+        data: {
+          last: '',
+          userId: '',
+          level: '',
+          first: '',
+          subject: '',
+          born: '',
+          isActiveTutor: true,
+          description: '',
+          hourRate: 0
+        },
+        img: ''
       },
-      token: null,
-      selectedTutor: null,
+      visibleTop: false,
     };
   },
   mounted() {
     this.getTutors();
-    this.getToken();
   },
   methods: {
-    async getToken() {
-      this.token = await token;
-    },
-    async addTutor() {
-      this.newTutor.userId = auth.currentUser.uid // TODO docelowo zaczytywane na formularzu rejestracyjym
-      try {
-        await addDoc(collection(db, "tutor"), this.newTutor);
-        console.log("Nowy korepetytor został dodany.");
-        this.newTutor = {
-          first: "",
-          last: "",
-          born: null,
-          subject: "",
-          level: "",
-          userId: ""
-        }; // Czyść formularz po dodaniu
-        await this.getTutors(); // Odśwież listę korepetytorów po dodaniu
-      } catch (error) {
-        console.error("Błąd podczas dodawania korepetytora:", error);
-      }
-    },
+    // getVisitDialog() {
+    //   this.visitDialog = true;
+    // },
     async getTutors() {
       this.tutors = [];
-      const querySnapshot = await getDocs(collection(db, "tutor"));
-      querySnapshot.forEach((doc) => {
-        console.log(`${doc.id} => ${doc.data()}`);
-        let formatData = { id: doc.id, data: doc.data() };
+      const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
+      querySnapshot.forEach(async (doc) => {
+        // console.log(`${doc.id} => ${doc.data()}`);
+        let data = doc.data();
+
+        const today = new Date();
+        const born = new Date(data.born);
+        let mils = today - born;
+        data.age = Math.floor(mils / (1000 * 60 * 60 * 24 * 365.25));
+
+        let img = await this.getProfileImg(data.userId);
+        let formatData = { id: doc.id, data: data, img: img };
         this.tutors.push(formatData);
       });
     },
-    async confirmDeleteTutor(tutor) {
+    tutorDetails(tutor) {
       this.selectedTutor = tutor;
-      if (
-        confirm(
-          `Czy na pewno chcesz usunąć korepetytora ${tutor.data.first} ${tutor.data.last}?`
-        )
-      ) {
-        await this.deleteTutor();
-      }
+      this.visibleTop = true;
     },
-    async deleteTutor() {
+    async getProfileImg(uid) {
+
+      let spaceRef = firebaseRef(storage, `profile-img/${uid}.jpg`);
+      let defRef = firebaseRef(storage, 'profile-img/default-img.png');
       try {
-        if (this.selectedTutor) {
-          await deleteDoc(doc(db, "tutor", this.selectedTutor.id));
-          console.log("Korepetytor został usunięty.");
-          this.selectedTutor = null;
-          await this.getTutors(); // Odśwież listę korepetytorów po usunięciu
-        }
+        let url = await getDownloadURL(spaceRef)
+          .then((url) => {
+
+            const xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onload = (event) => {
+              const blob = xhr.response;
+            };
+            xhr.open('GET', url);
+            xhr.send();
+
+            return url
+          })
+          .catch((error) => {
+            // Handle any errors
+          });
+        return url
+
       } catch (error) {
-        console.error("Błąd podczas usuwania korepetytora:", error);
+        let url = await getDownloadURL(defRef)
+          .then((url) => {
+
+            const xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onload = (event) => {
+              const blob = xhr.response;
+            };
+            xhr.open('GET', url);
+            xhr.send();
+
+            return url
+          })
+          .catch((error) => {
+            // Handle any errors
+          });
+        return url
       }
-    },
+    }
   },
 };
 </script>
@@ -133,27 +187,34 @@ export default {
 h3 {
   margin: 40px 0 0;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
   margin: 10px 0;
-  position: relative; /* Dodane dla przycisku usuwania */
+  position: relative;
+  /* Dodane dla przycisku usuwania */
 }
+
 form {
   margin-top: 20px;
 }
+
 label {
   display: block;
   margin-bottom: 5px;
 }
+
 input,
 select {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
 }
+
 button {
   padding: 8px 15px;
   background-color: #42b983;

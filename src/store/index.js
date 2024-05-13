@@ -10,15 +10,15 @@ export default createStore({
       provider: ""
     },
     tutor: {
-      first: "",
-      last: "",
-      born: null,
-      subject: "",
-      level: "",
-      userId: "",
-      description: "",
-      hourRate: 0,
-      isActiveTutor: false,
+      // first: "",
+      // last: "",
+      // born: null,
+      // subject: "",
+      // level: "",
+      // userId: "",
+      // description: "",
+      // hourRate: 0,
+      // isActiveTutor: false,
     },
     role: {
       type: '',
@@ -36,6 +36,9 @@ export default createStore({
     },
     getUserRole: (state) => {
       return state.role;
+    },
+    getUID(state){
+      return state.user.id;
     }
   },
   mutations: {
@@ -46,7 +49,7 @@ export default createStore({
       state.tutor = tutorData;
     },
     setUserRole(state, payload) {
-      console.log(payload.type, ' | ', payload.loggedIn);
+      // console.log(payload.type, ' | ', payload.loggedIn);
       if (!!payload.type) {
         state.role.type = payload.type;
       };

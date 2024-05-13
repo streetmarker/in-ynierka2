@@ -6,11 +6,13 @@ import firebase from 'firebase/compat/app';
 import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
 import store from './store/index';
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Loader from '../public/loader'
 import * as idb from './idb'
-import { getStorage, ref, getDownloadURL} from "firebase/storage";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import axios from 'axios';
+import router from "./router/index";
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 
 // TODO: Replace the following with your app's Firebase project configuration
@@ -19,7 +21,7 @@ const firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
   authDomain: process.env.VUE_APP_APP_DOMAIN,
   databaseURL:
-  process.env.VUE_APP_DATABASE_URL
+    process.env.VUE_APP_DATABASE_URL
   ,
   projectId: process.env.VUE_APP_PROJECT_ID,
   storageBucket: process.env.VUE_APP_STORAGE_BUCKET,
@@ -28,9 +30,9 @@ const firebaseConfig = {
   measurementId: process.env.VUE_APP_MEASUREMENT_ID,
 };
 // console.log(idb);
-var dbPromise  = idb.open('tutors', 1, function (db) {
-  if (!db.objectStoreNames.contains('tutor')){
-    db.createObjectStore('tutor', {keyPath: 'id'})
+var dbPromise = idb.open('tutors', 1, function (db) {
+  if (!db.objectStoreNames.contains('tutor')) {
+    db.createObjectStore('tutor', { keyPath: 'id' })
   }
 })
 const startTime = performance.now()
@@ -46,20 +48,14 @@ export const auth = getAuth(app);
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
+export const analytics = getAnalytics(app);
+
 export const storage = getStorage();
 
 const endTime = performance.now()
 const executionTime = endTime - startTime
-const logData = { name: 'init firebase', value: executionTime.toFixed(2)+"ms" }
-axios.post('http://localhost:3000/api/logs', logData)
-.then(response => {
-  console.log('Log sent successfully');
-})
-.catch(error => {
-  console.error('Error sending log:', error);
-});
-
-// console.log('test change file SW - 15');
+const logData = { name: 'firebaseObjInit', value: executionTime.toFixed(2) + "ms" }
+logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
 
 export const token = getToken(messaging, {
   vapidKey:
@@ -69,7 +65,8 @@ export const token = getToken(messaging, {
     if (currentToken) {
       // Send the token to your server and update the UI if necessary
       // ...
-      console.log(currentToken);
+      console.log('TOKEN:', currentToken);
+      // console.log(currentToken);
       return currentToken;
     } else {
       // Show permission request UI
@@ -83,7 +80,6 @@ export const token = getToken(messaging, {
     console.log(`An error occurred while retrieving token - ${err}`);
     // ...
   });
-
 
 async function startUi() {
   // document.getElementById('loading').style.display = 'initial';
@@ -109,19 +105,19 @@ async function startUi() {
       //   return tx.complete;
       // })
 
-    //   (async () => {
-    //     try {
-    //   var dbPromiseIn = await dbPromise;
-    //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
-    //   var storeDb = tx.objectStore('tutor');
-    //   storeDb.put(formatDataLogged);
-    //   console.log('add to idb: ',tx.complete);
-    // } catch (error) {
-    //   console.error('Błąd podczas pobierania roli z Firestore:', error);
-    // }
-  // })();
+      //   (async () => {
+      //     try {
+      //   var dbPromiseIn = await dbPromise;
+      //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
+      //   var storeDb = tx.objectStore('tutor');
+      //   storeDb.put(formatDataLogged);
+      //   console.log('add to idb: ',tx.complete);
+      // } catch (error) {
+      //   console.error('Błąd podczas pobierania roli z Firestore:', error);
+      // }
+      // })();
 
-        (async () => {
+      (async () => {
         try {
           const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
           store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
@@ -228,30 +224,37 @@ async function startUi() {
         }
       });
     }
-    // TUTOR ONLY PART
-    // TODO
-    // const userRole = store.getters.getUserRole;
-    // if (userRole.type == 'T') {
-    //   (async () => {
-    //     try {
-    //       const tutorData = await getTutorFirebase(uid);
-    //       store.commit('setTutor', tutorData);
-    //       if (tutorData.active == false) {
-    //         router.push('/tutor-register'); // TODO blokada routingu
-    //       }
-    //     } catch (error) {
-    //       console.error('Błąd podczas pobierania tutor z Firestore:', error);
-    //     }
-    //   })();
-    // }
+
     //
     Loader.close();
-  }, 4000);
+  }, 3000);
+  // TUTOR ONLY PART
+  // TODO
+  setTimeout(async () => {
+    const userRole = await store.getters.getUserRole;
+    // console.log(store.getters.getUserRole);
+    if (userRole.type == 'T') {
+      (async () => {
+        try {
+          const tutorData = await getTutorFirebase(store.getters.getUID);
+          // console.log("Tutor data: ", store.getters.getUID);
+          // console.log("Tutor data: ", tutorData);
+          store.commit('setTutor', tutorData);
+          if (tutorData.isActiveTutor == false) {
+            router.push('/tutor-register'); // TODO blokada routingu
+          }
+        } catch (error) {
+          console.error('Błąd podczas pobierania tutor z Firestore:', error);
+        }
+      })();
+    }
+  }, 5000);
 }
 async function insertUserFirestore(uid, authResult, tmpRole) {
+
   const docRef = doc(db, "user", uid);
   const docSnap = await getDoc(docRef);
-  console.log('docSnap: ', docSnap);
+  // console.log('docSnap: ', docSnap);
   if (!!docSnap._document) {
     console.log("Document data:", docSnap.data());
   } else {
@@ -267,16 +270,77 @@ async function insertUserFirestore(uid, authResult, tmpRole) {
   }
 }
 async function getUserRoleFirebase(uid) {
+  const startTime = performance.now()
+
   const docRef = doc(db, "user", uid); // get saved role
   const docSnap = await getDoc(docRef);
-  console.log('get user role: ', docSnap.data());
+  // console.log('get user role: ', docSnap.data());
+
+
+  const endTime = performance.now()
+  const executionTime = endTime - startTime
+  const logData = { name: 'getUserRoleFirebase', value: executionTime.toFixed(2) + "ms" }
+
+  logEvent(analytics, logData.name, {
+    value: logData.value + " time:  " + new Date()
+  });
+  if (process.env.VUE_APP_LOG_API) {
+    axios.post('http://localhost:3000/api/logs', logData)
+      .then(response => {
+        console.log('Log sent successfully');
+      })
+      .catch(error => {
+        console.info('Error sending log:', error);
+      });
+  }
+
   return docSnap.data().role
 }
 async function getTutorFirebase(uid) { // pobranie po userId
-  const docRef = doc(db, "tutor", uid); // get saved role
-  const docSnap = await getDoc(docRef);
-  console.log('get tutor: ', docSnap.data());
-  return docSnap.data()
+  const startTime = performance.now()
+
+  // const docRef = doc(db, "tutor", uid); // get saved role
+  // const docSnap = await getDoc(docRef);
+  // console.log('get tutor: ', docSnap.data());
+  let res = null;
+  const q = query(collection(db, "tutor"), where("userId", "==", uid));
+
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    // doc.data() is never undefined for query doc snapshots
+    // console.log(doc.id, " => ", doc.data());
+
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+    const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
+    logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
+
+    if (process.env.VUE_APP_LOG_API) {
+
+      axios.post('http://localhost:3000/api/logs', logData)
+        .then(response => {
+          console.log('Log sent successfully');
+        })
+        .catch(error => {
+          console.info('Error sending log:', error);
+        });
+    }
+    res = doc.data()
+  });
+  return res
+  // console.log("getTutorFirebase: ",res);
+  // const endTime = performance.now()
+  // const executionTime = endTime - startTime
+  // const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
+  // axios.post('http://localhost:3000/api/logs', logData)
+  //   .then(response => {
+  //     console.log('Log sent successfully');
+  //   })
+  //   .catch(error => {
+  //     console.error('Error sending log:', error);
+  //   });
+
+  // return res
 }
 var initApp = function () {
   // document.getElementById('sign-in-with-redirect').addEventListener(

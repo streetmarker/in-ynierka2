@@ -1,0 +1,59 @@
++--- .env
++--- .git
++--- cypress
+|   +--- downloads
+|   +--- fixtures
+|   |   +--- example.json
+|   +--- support
+|   |   +--- commands.js
+|   |   +--- component-index.html
+|   |   +--- component.js
++--- cypress.config.js
++--- package-lock.json
++--- package.json
++--- public
+|   +--- favicon.ico
+|   +--- idb.js
+|   +--- img
+|   |   +--- icons
+|   |   |   +--- <PLIKI PNG>
+|   +--- index.html
++--- README.md
++--- src
+|   +--- App.vue
+|   +--- assets
+|   |   +--- logo.png
+|   +--- components
+|   |   +--- Calendar.vue
+|   |   +--- DarkModeBtn.vue
+|   |   +--- MakeVisitDialog.cy.js
+|   |   +--- MakeVisitDialog.vue
+|   |   +--- TutorList.cy.js
+|   |   +--- TutorList.vue
+|   |   +--- TutorListNew.vue
+|   |   +--- TutorRegisterForm.vue
+|   +--- firebase-messaging-sw.js
+|   +--- firebaseInitializer.js
+|   +--- idb.js
+|   +--- main.js
+|   +--- registerServiceWorker.js
+|   +--- router
+|   |   +--- index.js
+|   +--- store
+|   |   +--- index.js
+|   +--- views
+|   |   +--- AdminPage.vue
+|   |   +--- ClientMakeVisit.cy.js
+|   |   +--- ClientMakeVisit.vue
+|   |   +--- ClientPanelPage.vue
+|   |   +--- ClientTutorListPage.vue
+|   |   +--- TutorAdmin.vue
+|   |   +--- TutorManager.vue
+|   |   +--- TutorRegister.cy.js
+|   |   +--- TutorRegister.vue
+|   |   +--- LandingPage.cy.js
+|   |   +--- LandingPage.vue
+|   |   +--- WelcomePage.vue
++--- vue.config.js
++--- workbox
++--- workbox-config.js

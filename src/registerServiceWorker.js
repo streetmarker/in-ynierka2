@@ -1,6 +1,10 @@
 /* eslint-disable no-console */
-
+import { fromBase64 } from 'base64url';
 import { register } from "register-service-worker";
+
+const applicationServerKey = process.env.VUE_APP_FCM_KEY;
+
+const applicationServerKeyUint8 = fromBase64(applicationServerKey);
 
 if (process.env.NODE_ENV === "production") {
   register(`${process.env.BASE_URL}service-worker.js`, {
@@ -12,13 +16,31 @@ if (process.env.NODE_ENV === "production") {
     },
     registered(registration) {
       console.log("Service worker has been registered.");
-      registration.pushManager.getSubscription()
-        .then(function (subscription) {
-          console.log('Service worker pushManager: ', subscription);
-          if (subscription === null) {
-            subscribeUser(registration);
-          }
-        });
+      // FCM ONLY
+      // registration.pushManager.getSubscription()
+      //   .then(function (subscription) {
+      //     console.log('Service worker pushManager: ', subscription);
+      //     // if (subscription === null) {
+      //     //   subscribeUser(registration);
+      //     // }
+      //     if (subscription === null) {
+      //       // Wyświetl okno dialogowe prośby o zezwolenie na subskrypcję push
+      //       if (confirm("Czy chcesz zezwolić na otrzymywanie powiadomień push?")) {
+      //         registration.pushManager.subscribe({
+      //           userVisibleOnly: true,
+      //           applicationServerKey: applicationServerKeyUint8
+      //         })
+      //         .then(function(newSubscription) {
+      //           console.log('Nowa subskrypcja push:', newSubscription);
+      //           // Przekazanie nowej subskrypcji do serwera aplikacji
+      //         })
+      //         .catch(function(error) {
+      //           console.error('Błąd podczas subskrybowania push:', error);
+      //         });
+      //       }
+      //     }
+          
+      //   });
     },
     cached() {
       console.log("Content has been cached for offline use.");

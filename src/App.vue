@@ -128,16 +128,10 @@ watch(role, (newRole, oldRole) => {
         </div>
       </div>
     </div>
-    <!-- <button @click="dumpLogs">DUMP</button> -->
-    <!-- <button @click="test">TEST</button>
-    <input type="text" v-model="role" />
-    <select id="subject" v-model="loggedInFront">
-      <option value="true">true</option>
-      <option value="false">false</option>
-    </select>
-    {{ role }} | {{ loggedInFront }} -->
-    <!-- <DarkModeBtn /> -->
-    <!-- <img id="myimg"> -->
+    <!-- TODO -->
+    <!-- <div v-if="process.env.VUE_APP_NODE_ENV === 'development'">
+      {{ tokenIn }}
+    </div> -->
   </div>
 </template>
 
@@ -145,6 +139,7 @@ watch(role, (newRole, oldRole) => {
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
+import { getToken } from "firebase/messaging";
 // import DarkModeBtn from './components/DarkModeBtn.vue' // TODO
 
 export default {
@@ -158,6 +153,7 @@ export default {
       visible: false,
       role: "C",
       loggedInFront: false,
+      tokenIn: ''
     };
   },
   computed: {
@@ -186,11 +182,12 @@ export default {
   mounted() {
     // this.initLogs();
     this.requestPermission();
-    // setTimeout(() => {
-    //   this.logEntry();
-    // }, 3000);
+    this.getToken();
   },
   methods: {
+    async getToken(){
+      this.tokenIn = await token;
+    },
     requestPermission() {
       console.log("Requesting permission...");
       Notification.requestPermission().then((permission) => {
