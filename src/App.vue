@@ -124,6 +124,7 @@ watch(role, (newRole, oldRole) => {
     <div class="container">
       <div id="features" class="row text-center">
         <div class="col">
+          <!-- <div style="opacity: 0%;" id="firebaseui-auth-container"></div> -->
           <router-view />
         </div>
       </div>

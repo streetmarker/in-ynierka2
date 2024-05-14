@@ -58,7 +58,7 @@ import {
         Poziom: {{ selectedTutor.data.level }} <br>
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
-        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" />
+        <MakeVisitDialog  btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" @mounted="handleModalMounted" />
         <Calendar />
       </COffcanvasBody>
     </COffcanvas>
@@ -71,7 +71,7 @@ import { ref } from 'vue';
 import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
 
 // const dialogOpen = ref(false);
-import { db, storage } from "../firebaseInitializer";
+import { db, storage, perf } from "../firebaseInitializer";
 import {
   collection,
   addDoc,
@@ -80,6 +80,35 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
+import { trace } from "firebase/performance";
+
+// setTimeout(() => {
+//   console.log(perf);
+// }, 2000);
+// Inicjalizacja zmiennej, która przechowa referencję do trace
+let t;
+
+// Funkcja do sprawdzania, czy zmienna `perf` została zainicjowana
+const checkPerfInitialization = () => {
+  try {
+    t = trace(perf, "choose_tutor_time");
+  } catch (e) {
+    setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
+  }
+  // if (perf && perf.initialized === true) {
+  //   // `perf` jest zainicjowane, możemy wykonać logikę związana z tym
+  //   t = trace(perf, "choose_tutor_time");
+
+  //   // Tutaj możesz wykonać inne czynności, które wymagają zmiennej `perf`
+  //   // np. dodanie oznaczeń do śledzenia wydajności
+  // } else {
+  //   // Zmienna `perf` nie została jeszcze zainicjowana, czekamy i sprawdzamy ponownie za krótki okres czasu
+  //   setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
+  // }
+};
+
+// Wywołanie funkcji sprawdzającej inicjalizację zmiennej `perf`
+checkPerfInitialization();
 
 export default {
   name: "Dashboard",
@@ -112,9 +141,11 @@ export default {
     this.getTutors();
   },
   methods: {
-    // getVisitDialog() {
-    //   this.visitDialog = true;
-    // },
+    handleModalMounted() {
+      // perf
+      t.stop();
+
+    },
     async getTutors() {
       this.tutors = [];
       const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
@@ -131,6 +162,9 @@ export default {
         let formatData = { id: doc.id, data: data, img: img };
         this.tutors.push(formatData);
       });
+      // perf
+      t.start();
+
     },
     tutorDetails(tutor) {
       this.selectedTutor = tutor;

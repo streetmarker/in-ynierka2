@@ -1,60 +1,3 @@
-<!-- <template>
-  <Dialog :open="isOpen" @close="showDialog = false">
-    <div class="dialog-content">
-      <h2>Korepetytor: {{ tutor.data.first }}</h2>
-      <p>Termin: {{ selectedDate }}</p>
-      <button @click="confirmBooking">Potwierdź i opłać przez PayPal</button>
-    </div>
-  </Dialog>
-</template>
-
-<script setup>
-  import { ref } from 'vue'
-  import {
-    Dialog,
-    DialogPanel,
-    DialogTitle,
-    DialogDescription,
-  } from '@headlessui/vue'
-
-  const isOpen = ref(true)
-
-  function setIsOpen(value) {
-    isOpen.value = value
-  }
-</script>
-
-<script>
-export default {
-  props: {
-    // showDialog: {
-    //   type: Boolean,
-    //   required: true
-    // },
-    tutor: {
-      type: Object,
-      required: true
-    },
-    selectedDate: {
-      type: String,
-      required: true
-    }
-  },
-  // setup(props) {
-  //   const showPayPalDialog = ref(false);
-
-  //   const confirmBooking = () => {
-  //     // Tutaj możesz umieścić kod do potwierdzenia rezerwacji i otwarcia okna PayPal
-  //     showPayPalDialog.value = true;
-  //   };
-
-  //   return {
-  //     confirmBooking,
-  //     showPayPalDialog
-  //   };
-  // }
-};
-</script> -->
 <script setup>
 import {
   CModal,
@@ -80,17 +23,21 @@ import {
       <CButton color="secondary" @click="() => { visibleLiveDemo = false }">
         Zamknij
       </CButton>
-      <CButton color="primary">Potwierdź i przejdź do płatności</CButton>
+      <CButton @click="makeReservation" color="primary">Potwierdź i przejdź do płatności</CButton>
     </CModalFooter>
   </CModal>
 </template>
 <script>
+// import { defineEmits } from 'vue';
+
+// defineEmits(['mounted']);
+
 export default {
   props: {
-    // showDialog: {
-    //   type: Boolean,
-    //   required: true
-    // },
+    showDialog: {
+      type: Boolean,
+      required: true
+    },
     tutor: {
       type: Object,
       required: true
@@ -112,8 +59,13 @@ export default {
       return this.$store.state.tmpVisitDate.toLocaleString(); // TODO do komponentu
     },
   },
-  // mounted() {
-  //   this.visibleLiveDemo = this.showDialog;
-  // }
+  mounted() {
+    this.visibleLiveDemo = this.showDialog;
+  },
+  methods: {
+    makeReservation() {
+      this.$emit('mounted');
+    }
+  }
 }
 </script>

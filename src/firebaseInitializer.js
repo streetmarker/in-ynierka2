@@ -13,7 +13,8 @@ import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import axios from 'axios';
 import router from "./router/index";
 import { getAnalytics, logEvent } from "firebase/analytics";
-
+import { getPerformance } from "firebase/performance";
+import { trace } from "firebase/performance";
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
@@ -35,10 +36,18 @@ var dbPromise = idb.open('tutors', 1, function (db) {
     db.createObjectStore('tutor', { keyPath: 'id' })
   }
 })
-const startTime = performance.now()
+// const startTime = performance.now()
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
+// Initialize Performance Monitoring and get a reference to the service
+export const perf = getPerformance(app);
+const t = trace(perf, "init_firebase_objects");
+t.start();
+
+// Code that you want to trace 
+// ...
+
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 // Initialize Firebase Cloud Messaging and get a reference to the service
@@ -52,10 +61,19 @@ export const analytics = getAnalytics(app);
 
 export const storage = getStorage();
 
-const endTime = performance.now()
-const executionTime = endTime - startTime
-const logData = { name: 'firebaseObjInit', value: executionTime.toFixed(2) + "ms" }
-logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
+t.stop();
+// const t = trace(perf, "CUSTOM_TRACE_NAME");
+// t.start();
+
+// // Code that you want to trace 
+// // ...
+
+// t.stop();
+
+// const endTime = performance.now()
+// const executionTime = endTime - startTime
+// const logData = { name: 'firebaseObjInit', value: executionTime.toFixed(2) + "ms" }
+// logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
 
 export const token = getToken(messaging, {
   vapidKey:
@@ -81,153 +99,44 @@ export const token = getToken(messaging, {
     // ...
   });
 
-async function startUi() {
-  // document.getElementById('loading').style.display = 'initial';
-  // modalLoading.init(true);
-  Loader.open();
+function waitForCurrentUser(callback, maxWaitTime = 3000, interval = 500) {
+  let elapsedTime = 0;
 
-  setTimeout(() => {
-    // console.log("start ui:", auth.currentUser);
+  function checkCurrentUser() {
     if (auth.currentUser) {
-      let formatDataLogged = {
-        id: auth.currentUser.uid,
-        fullName: auth.currentUser.displayName,
-        email: auth.currentUser.email,
-        photo: auth.currentUser.photoURL,
-        provider: auth.currentUser.providerData.providerId,
-        // role:
-      }
-      store.commit('setUser', formatDataLogged);
-      // dbPromise.then(function(db) {
-      //   var tx = db.transaction('tutor', 'readwrite');
-      //   var store = tx.objectStore('tutor');
-      //   store.put(formatDataLogged);
-      //   return tx.complete;
-      // })
-
-      //   (async () => {
-      //     try {
-      //   var dbPromiseIn = await dbPromise;
-      //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
-      //   var storeDb = tx.objectStore('tutor');
-      //   storeDb.put(formatDataLogged);
-      //   console.log('add to idb: ',tx.complete);
-      // } catch (error) {
-      //   console.error('Błąd podczas pobierania roli z Firestore:', error);
-      // }
-      // })();
-
-      (async () => {
-        try {
-          const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
-          store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
-        } catch (error) {
-          console.error('Błąd podczas pobierania roli z Firestore:', error);
-        }
-      })();
-
-      document.getElementById('sign-out').style.display = 'initial';
-      document.getElementById('sign-in').style.display = 'none';
+      callback();
+      initLoggedUser();
+    } else if (elapsedTime >= maxWaitTime) {
+      console.error("Przekroczono limit czasu oczekiwania na uzyskanie danych użytkownika.");
+      renderLoginUI();
     } else {
-      ui.start('#firebaseui-auth-container', {
-        // signInSuccessUrl: '/',
-        signInFlow: 'popup',
-        signInOptions: [
-          firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-          //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-          firebase.auth.EmailAuthProvider.PROVIDER_ID
-        ],
-        callbacks: {
-          signInSuccessWithAuthResult: function (authResult, redirectUrl) {
-            // Process result. This will not trigger on merge conflicts.
-            // On success redirect to signInSuccessUrl.
-            let uid = authResult.user.uid;
-            let formatData = {
-              id: uid,
-              fullName: authResult.user.displayName,
-              email: authResult.user.email,
-              photo: authResult.user.photoURL,
-              provider: authResult.user.providerData.providerId
-            }
-            // console.log('STATE TMP ROLE', store.getters.getTmpRole);
-            let tmpRole = store.getters.getTmpRole; // first time login
-            (async () => {
-              try {
-                const roleFromFirestore = await getUserRoleFirebase(uid); // pobieramy by porównać dane na front i w db
-
-                if (tmpRole.length == 0 || tmpRole != roleFromFirestore) { // sprawdzenie czy zaznaczono jak w db jeżeli jest i uzupełnienie
-                  store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
-                }
-                else {
-                  store.commit('setUserRole', { type: tmpRole, loggedIn: true });
-                }
-              } catch (error) {
-                console.error('Błąd podczas pobierania roli z Firestore:', error);
-                store.commit('setUserRole', { type: tmpRole, loggedIn: true });
-              }
-            })();
-
-            insertUserFirestore(uid, authResult, tmpRole);
-
-            store.commit('setUser', formatData);
-
-            document.getElementById('sign-out').style.display = 'initial';
-            document.getElementById('sign-in').style.display = 'none';
-
-            return false;
-          },
-
-          // signInFailure callback must be provided to handle merge conflicts which
-          // occur when an existing credential is linked to an anonymous user.
-          // signInFailure: function(error) {
-          //   // For merge conflicts, the error.code will be
-          //   // 'firebaseui/anonymous-upgrade-merge-conflict'.
-          //   if (error.code != 'firebaseui/anonymous-upgrade-merge-conflict') {
-          //     return Promise.resolve();
-          //   }
-          //   // The credential the user tried to sign in with.
-          //   var cred = error.credential;
-          //   // If using Firebase Realtime Database. The anonymous user data has to be
-          //   // copied to the non-anonymous user.
-          //   var app = firebase.app();
-          //   // Save anonymous user data first.
-          //   return app.database().ref('users/' + firebase.auth().currentUser.uid)
-          //       .once('value')
-          //       .then(function(snapshot) {
-          //         data = snapshot.val();
-          //         // This will trigger onAuthStateChanged listener which
-          //         // could trigger a redirect to another page.
-          //         // Ensure the upgrade flow is not interrupted by that callback
-          //         // and that this is given enough time to complete before
-          //         // redirection.
-          //         return firebase.auth().signInWithCredential(cred);
-          //       })
-          //       .then(function(user) {
-          //         // Original Anonymous Auth instance now has the new user.
-          //         return app.database().ref('users/' + user.uid).set(data);
-          //       })
-          //       .then(function() {
-          //         // Delete anonymnous user.
-          //         return anonymousUser.delete();
-          //       }).then(function() {
-          //         // Clear data in case a new user signs in, and the state change
-          //         // triggers.
-          //         data = null;
-          //         // FirebaseUI will reset and the UI cleared when this promise
-          //         // resolves.
-          //         // signInSuccessWithAuthResult will not run. Successful sign-in
-          //         // logic has to be run explicitly.
-          //         window.location.assign('<url-to-redirect-to-on-success>');
-          //       });
-
-          // }
-        }
-      });
+      setTimeout(() => {
+        elapsedTime += interval;
+        checkCurrentUser();
+      }, interval);
     }
+  }
 
-    //
-    Loader.close();
-  }, 3000);
+  checkCurrentUser();
+}
+async function startUi() {
+  const t = trace(perf, "init_ui");
+  t.start();
+
+  Loader.open();
+  waitForCurrentUser(() => {
+  }, 3000); // Max czas oczekiwania: 3 sekundy
+
+  // setTimeout(() => {
+  // if (auth.currentUser) {
+  // } else {
+  //   renderLoginUI();
+  // }
+
+  //
+  Loader.close();
+  // }, 3000);
+  t.stop();
   // TUTOR ONLY PART
   // TODO
   setTimeout(async () => {
@@ -255,9 +164,7 @@ async function insertUserFirestore(uid, authResult, tmpRole) {
   const docRef = doc(db, "user", uid);
   const docSnap = await getDoc(docRef);
   // console.log('docSnap: ', docSnap);
-  if (!!docSnap._document) {
-    console.log("Document data:", docSnap.data());
-  } else {
+  if (!docSnap._document) {
     // docSnap.data() will be undefined in this case
     let data = {
       id: uid,
@@ -270,34 +177,38 @@ async function insertUserFirestore(uid, authResult, tmpRole) {
   }
 }
 async function getUserRoleFirebase(uid) {
-  const startTime = performance.now()
+  // const startTime = performance.now()
+  const t = trace(perf, "get_user_role_firebase");
+  t.start();
 
   const docRef = doc(db, "user", uid); // get saved role
   const docSnap = await getDoc(docRef);
   // console.log('get user role: ', docSnap.data());
 
 
-  const endTime = performance.now()
-  const executionTime = endTime - startTime
-  const logData = { name: 'getUserRoleFirebase', value: executionTime.toFixed(2) + "ms" }
+  t.stop();
+  // const endTime = performance.now()
+  // const executionTime = endTime - startTime
+  // const logData = { name: 'getUserRoleFirebase', value: executionTime.toFixed(2) + "ms" }
 
-  logEvent(analytics, logData.name, {
-    value: logData.value + " time:  " + new Date()
-  });
-  if (process.env.VUE_APP_LOG_API) {
-    axios.post('http://localhost:3000/api/logs', logData)
-      .then(response => {
-        console.log('Log sent successfully');
-      })
-      .catch(error => {
-        console.info('Error sending log:', error);
-      });
-  }
+  // logEvent(analytics, logData.name, {
+  //   value: logData.value + " time:  " + new Date()
+  // });
+  // if (process.env.VUE_APP_LOG_API) {
+  //   axios.post('http://localhost:3000/api/logs', logData)
+  //     .then(response => {
+  //       console.log('Log sent successfully');
+  //     })
+  //     .catch(error => {
+  //       console.info('Error sending log:', error);
+  //     });
+  // }
 
   return docSnap.data().role
 }
 async function getTutorFirebase(uid) { // pobranie po userId
-  const startTime = performance.now()
+  const t = trace(perf, "get_tutor_firebase");
+  t.start();
 
   // const docRef = doc(db, "tutor", uid); // get saved role
   // const docSnap = await getDoc(docRef);
@@ -310,23 +221,23 @@ async function getTutorFirebase(uid) { // pobranie po userId
     // doc.data() is never undefined for query doc snapshots
     // console.log(doc.id, " => ", doc.data());
 
-    const endTime = performance.now();
-    const executionTime = endTime - startTime;
-    const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
-    logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
+    // const endTime = performance.now();
+    // const executionTime = endTime - startTime;
+    // const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
+    // logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
+    // if (process.env.VUE_APP_LOG_API) {
 
-    if (process.env.VUE_APP_LOG_API) {
-
-      axios.post('http://localhost:3000/api/logs', logData)
-        .then(response => {
-          console.log('Log sent successfully');
-        })
-        .catch(error => {
-          console.info('Error sending log:', error);
-        });
-    }
+    //   axios.post('http://localhost:3000/api/logs', logData)
+    //     .then(response => {
+    //       console.log('Log sent successfully');
+    //     })
+    //     .catch(error => {
+    //       console.info('Error sending log:', error);
+    //     });
+    // }
     res = doc.data()
   });
+  t.stop();
   return res
   // console.log("getTutorFirebase: ",res);
   // const endTime = performance.now()
@@ -342,7 +253,108 @@ async function getTutorFirebase(uid) { // pobranie po userId
 
   // return res
 }
+function initLoggedUser() {
+  if (auth.currentUser) {
+    let formatDataLogged = {
+      id: auth.currentUser.uid,
+      fullName: auth.currentUser.displayName,
+      email: auth.currentUser.email,
+      photo: auth.currentUser.photoURL,
+      provider: auth.currentUser.providerData.providerId,
+      // role:
+    }
+    store.commit('setUser', formatDataLogged);
+    // dbPromise.then(function(db) {
+    //   var tx = db.transaction('tutor', 'readwrite');
+    //   var store = tx.objectStore('tutor');
+    //   store.put(formatDataLogged);
+    //   return tx.complete;
+    // })
+
+    //   (async () => {
+    //     try {
+    //   var dbPromiseIn = await dbPromise;
+    //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
+    //   var storeDb = tx.objectStore('tutor');
+    //   storeDb.put(formatDataLogged);
+    //   console.log('add to idb: ',tx.complete);
+    // } catch (error) {
+    //   console.error('Błąd podczas pobierania roli z Firestore:', error);
+    // }
+    // })();
+
+    (async () => {
+      try {
+        const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
+        store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
+      } catch (error) {
+        console.error('Błąd podczas pobierania roli z Firestore:', error);
+      }
+    })();
+    document.getElementById('sign-out').style.display = 'initial';
+    document.getElementById('sign-in').style.display = 'none';
+  }
+}
+function renderLoginUI() {
+
+  ui.start('#firebaseui-auth-container', {
+    // signInSuccessUrl: '/',
+    signInFlow: 'popup',
+    signInOptions: [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      //firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+      firebase.auth.EmailAuthProvider.PROVIDER_ID
+    ],
+    callbacks: {
+      signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+        // Process result. This will not trigger on merge conflicts.
+        // On success redirect to signInSuccessUrl.
+        let uid = authResult.user.uid;
+        let formatData = {
+          id: uid,
+          fullName: authResult.user.displayName,
+          email: authResult.user.email,
+          photo: authResult.user.photoURL,
+          provider: authResult.user.providerData.providerId
+        }
+        // console.log('STATE TMP ROLE', store.getters.getTmpRole);
+        let tmpRole = store.getters.getTmpRole; // first time login
+        (async () => {
+          try {
+            const roleFromFirestore = await getUserRoleFirebase(uid); // pobieramy by porównać dane na front i w db
+
+            if (tmpRole.length == 0 || tmpRole != roleFromFirestore) { // sprawdzenie czy zaznaczono jak w db jeżeli jest i uzupełnienie
+              store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
+            }
+            else {
+              store.commit('setUserRole', { type: tmpRole, loggedIn: true });
+            }
+          } catch (error) {
+            console.error('Błąd podczas pobierania roli z Firestore:', error);
+            store.commit('setUserRole', { type: tmpRole, loggedIn: true });
+          }
+        })();
+
+        insertUserFirestore(uid, authResult, tmpRole);
+
+        store.commit('setUser', formatData);
+
+        document.getElementById('sign-out').style.display = 'initial';
+        document.getElementById('sign-in').style.display = 'none';
+
+        return false;
+      },
+
+      // signInFailure callback must be provided to handle merge conflicts which
+      // occur when an existing credential is linked to an anonymous user.
+      // signInFailure: function(error) {
+    }
+  });
+}
+
 var initApp = function () {
+  document.getElementById('sign-out').style.display = 'none';
+  document.getElementById('sign-in').style.display = 'initial';
   // document.getElementById('sign-in-with-redirect').addEventListener(
   //     'click', signInWithRedirect);
   // document.getElementById('sign-in-with-popup').addEventListener(
@@ -363,10 +375,13 @@ var initApp = function () {
     document.getElementById('sign-out').style.display = 'none';
     document.getElementById('sign-in').style.display = 'initial';
     auth.signOut();
-    startUi();
+    // startUi();
+    setTimeout(() => {
+      renderLoginUI();
+    }, 2000);
   });
-  document.getElementById('sign-out').style.display = 'none';
-  document.getElementById('sign-in').style.display = 'initial';
+  // document.getElementById('sign-out').style.display = 'none';
+  // document.getElementById('sign-in').style.display = 'initial';
   // document.getElementById('delete-account').addEventListener(
   //     'click', function() {
   //       deleteAccount();
