@@ -24,3 +24,5 @@ pnpm-debug.log*
 *.sw?
 notes.txt
 *cache*
+testFire*
+*admin*

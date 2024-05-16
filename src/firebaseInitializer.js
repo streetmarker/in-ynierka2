@@ -10,12 +10,12 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase
 import Loader from '../public/loader'
 import * as idb from './idb'
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import axios from 'axios';
 import router from "./router/index";
 import { getAnalytics, logEvent } from "firebase/analytics";
 import { getPerformance } from "firebase/performance";
 import { trace } from "firebase/performance";
 
+Loader.open();
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
 const firebaseConfig = {
@@ -30,23 +30,19 @@ const firebaseConfig = {
   appId: process.env.VUE_APP_APP_ID,
   measurementId: process.env.VUE_APP_MEASUREMENT_ID,
 };
-// console.log(idb);
 var dbPromise = idb.open('tutors', 1, function (db) {
   if (!db.objectStoreNames.contains('tutor')) {
     db.createObjectStore('tutor', { keyPath: 'id' })
   }
 })
-// const startTime = performance.now()
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 // Initialize Performance Monitoring and get a reference to the service
 export const perf = getPerformance(app);
+
 const t = trace(perf, "init_firebase_objects");
 t.start();
-
-// Code that you want to trace 
-// ...
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
@@ -61,43 +57,49 @@ export const analytics = getAnalytics(app);
 
 export const storage = getStorage();
 
-t.stop();
-// const t = trace(perf, "CUSTOM_TRACE_NAME");
-// t.start();
-
-// // Code that you want to trace 
-// // ...
-
-// t.stop();
-
-// const endTime = performance.now()
-// const executionTime = endTime - startTime
-// const logData = { name: 'firebaseObjInit', value: executionTime.toFixed(2) + "ms" }
-// logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
-
 export const token = getToken(messaging, {
   vapidKey:
     process.env.VUE_APP_VAPID_KEY,
 })
   .then((currentToken) => {
     if (currentToken) {
-      // Send the token to your server and update the UI if necessary
-      // ...
       console.log('TOKEN:', currentToken);
-      // console.log(currentToken);
       return currentToken;
     } else {
       // Show permission request UI
       console.log(
         "No registration token available. Request permission to generate one."
       );
-      // ...
     }
   })
   .catch((err) => {
     console.log(`An error occurred while retrieving token - ${err}`);
-    // ...
   });
+
+t.stop();
+async function getTestDoc() {
+    try {
+      // Pobranie utworzonego dokumentu
+      // const snapshot = await db.collection('visit').get();
+      // const docRef = doc(db, "visit");
+      // const docSnap = await getDoc(docRef);
+      const querySnapshot = await getDocs(collection(db, "visit"));
+  
+      // Wyświetlenie danych dokumentu
+      querySnapshot.forEach(doc => {
+        console.log(doc.id, '=>', doc.data());
+      });
+  
+      console.log('Pobranie dokumentu zakończone sukcesem.');
+  
+    } catch (error) {
+      console.error('Błąd podczas testowania reguł Firestore:', error);
+    }
+  }
+  
+
+// insertTestDoc();
+// getTestDoc();
 
 function waitForCurrentUser(callback, maxWaitTime = 3000, interval = 500) {
   let elapsedTime = 0;
@@ -105,10 +107,12 @@ function waitForCurrentUser(callback, maxWaitTime = 3000, interval = 500) {
   function checkCurrentUser() {
     if (auth.currentUser) {
       callback();
-      initLoggedUser();
+      initLoggedUser(); // załaduj UI dla usera który się nie wylogował
+      Loader.close();
     } else if (elapsedTime >= maxWaitTime) {
       console.error("Przekroczono limit czasu oczekiwania na uzyskanie danych użytkownika.");
-      renderLoginUI();
+      renderLoginUI(); // załaduj UI dla usera który się wylogował lub nie ma konta
+      Loader.close();
     } else {
       setTimeout(() => {
         elapsedTime += interval;
@@ -123,25 +127,16 @@ async function startUi() {
   const t = trace(perf, "init_ui");
   t.start();
 
-  Loader.open();
+
   waitForCurrentUser(() => {
   }, 3000); // Max czas oczekiwania: 3 sekundy
 
-  // setTimeout(() => {
-  // if (auth.currentUser) {
-  // } else {
-  //   renderLoginUI();
-  // }
 
-  //
-  Loader.close();
-  // }, 3000);
   t.stop();
   // TUTOR ONLY PART
   // TODO
   setTimeout(async () => {
     const userRole = await store.getters.getUserRole;
-    // console.log(store.getters.getUserRole);
     if (userRole.type == 'T') {
       (async () => {
         try {
@@ -157,7 +152,7 @@ async function startUi() {
         }
       })();
     }
-  }, 5000);
+  }, 4000);
 }
 async function insertUserFirestore(uid, authResult, tmpRole) {
 
@@ -253,47 +248,66 @@ async function getTutorFirebase(uid) { // pobranie po userId
 
   // return res
 }
-function initLoggedUser() {
-  if (auth.currentUser) {
+async function getUserFirebase(uid) {
+
+  const docRef = doc(db, "user", uid);
+  const docSnap = await getDoc(docRef);
+
+  return docSnap.data()
+}
+async function initLoggedUser() {
+  let user = auth.currentUser;
+  if (auth.currentUser.displayName) { // from Google TODO refactor
     let formatDataLogged = {
-      id: auth.currentUser.uid,
-      fullName: auth.currentUser.displayName,
-      email: auth.currentUser.email,
-      photo: auth.currentUser.photoURL,
-      provider: auth.currentUser.providerData.providerId,
+      id: user.uid,
+      fullName: user.displayName,
+      email: user.email,
+      photo: user.photoURL,
+      provider: user.providerData.providerId,
       // role:
     }
     store.commit('setUser', formatDataLogged);
-    // dbPromise.then(function(db) {
-    //   var tx = db.transaction('tutor', 'readwrite');
-    //   var store = tx.objectStore('tutor');
-    //   store.put(formatDataLogged);
-    //   return tx.complete;
-    // })
-
-    //   (async () => {
-    //     try {
-    //   var dbPromiseIn = await dbPromise;
-    //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
-    //   var storeDb = tx.objectStore('tutor');
-    //   storeDb.put(formatDataLogged);
-    //   console.log('add to idb: ',tx.complete);
-    // } catch (error) {
-    //   console.error('Błąd podczas pobierania roli z Firestore:', error);
-    // }
-    // })();
-
-    (async () => {
-      try {
-        const roleFromFirestore = await getUserRoleFirebase(auth.currentUser.uid);
-        store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
-      } catch (error) {
-        console.error('Błąd podczas pobierania roli z Firestore:', error);
-      }
-    })();
-    document.getElementById('sign-out').style.display = 'initial';
-    document.getElementById('sign-in').style.display = 'none';
+  } else {
+    let userFirebase = await getUserFirebase(user.uid)
+    let formatDataLogged = {
+      id: userFirebase.id,
+      fullName: userFirebase.fullName,
+      email: userFirebase.email,
+      photo: '', // TODO
+      provider: 'email',
+      // role:
+    }
+    store.commit('setUser', formatDataLogged);
   }
+  // dbPromise.then(function(db) {
+  //   var tx = db.transaction('tutor', 'readwrite');
+  //   var store = tx.objectStore('tutor');
+  //   store.put(formatDataLogged);
+  //   return tx.complete;
+  // })
+
+  //   (async () => {
+  //     try {
+  //   var dbPromiseIn = await dbPromise;
+  //   var tx = dbPromiseIn.transaction('tutor', 'readwrite');
+  //   var storeDb = tx.objectStore('tutor');
+  //   storeDb.put(formatDataLogged);
+  //   console.log('add to idb: ',tx.complete);
+  // } catch (error) {
+  //   console.error('Błąd podczas pobierania roli z Firestore:', error);
+  // }
+  // })();
+
+  (async () => {
+    try {
+      const roleFromFirestore = await getUserRoleFirebase(user.uid);
+      store.commit('setUserRole', { type: roleFromFirestore, loggedIn: true });
+    } catch (error) {
+      console.error('Błąd podczas pobierania roli z Firestore:', error);
+    }
+  })();
+  document.getElementById('sign-out').style.display = 'initial';
+  document.getElementById('sign-in').style.display = 'none';
 }
 function renderLoginUI() {
 
@@ -310,12 +324,29 @@ function renderLoginUI() {
         // Process result. This will not trigger on merge conflicts.
         // On success redirect to signInSuccessUrl.
         let uid = authResult.user.uid;
-        let formatData = {
-          id: uid,
-          fullName: authResult.user.displayName,
-          email: authResult.user.email,
-          photo: authResult.user.photoURL,
-          provider: authResult.user.providerData.providerId
+        if (authResult.user.displayName) { // from Google TODO refactor
+          let formatData = {
+            id: uid,
+            fullName: authResult.user.displayName,
+            email: authResult.user.email,
+            photo: authResult.user.photoURL,
+            provider: authResult.user.providerData.providerId
+          }
+          store.commit('setUser', formatData);
+        } else {
+
+          (async () => {
+            let userFirebase = await getUserFirebase(uid)
+            let formatData = {
+              id: userFirebase.id,
+              fullName: userFirebase.fullName,
+              email: userFirebase.email,
+              photo: '', // TODO
+              provider: 'email',
+              // role:
+            }
+            store.commit('setUser', formatData);
+          })();
         }
         // console.log('STATE TMP ROLE', store.getters.getTmpRole);
         let tmpRole = store.getters.getTmpRole; // first time login
@@ -337,7 +368,7 @@ function renderLoginUI() {
 
         insertUserFirestore(uid, authResult, tmpRole);
 
-        store.commit('setUser', formatData);
+        // store.commit('setUser', formatData);
 
         document.getElementById('sign-out').style.display = 'initial';
         document.getElementById('sign-in').style.display = 'none';
@@ -353,13 +384,12 @@ function renderLoginUI() {
 }
 
 var initApp = function () {
-  document.getElementById('sign-out').style.display = 'none';
-  document.getElementById('sign-in').style.display = 'initial';
-  // document.getElementById('sign-in-with-redirect').addEventListener(
-  //     'click', signInWithRedirect);
-  // document.getElementById('sign-in-with-popup').addEventListener(
-  //     'click', signInWithPopup);
+  if (!auth.currentUser) {
+    document.getElementById('sign-out').style.display = 'none';
+    document.getElementById('sign-in').style.display = 'initial';
+  }
   document.getElementById('sign-out').addEventListener('click', function () {
+
     auth.signOut();
     // let user = {
     //   id: "",
@@ -376,9 +406,19 @@ var initApp = function () {
     document.getElementById('sign-in').style.display = 'initial';
     auth.signOut();
     // startUi();
-    setTimeout(() => {
-      renderLoginUI();
-    }, 2000);
+    // setTimeout(() => {
+      Loader.open();
+      function tmp(cb) {
+        try {
+          renderLoginUI();
+          Loader.close();
+        } catch (error) {
+          setTimeout(() => {
+            tmp();
+          }, 1000);
+        }
+      }
+    tmp();
   });
   // document.getElementById('sign-out').style.display = 'none';
   // document.getElementById('sign-in').style.display = 'initial';
@@ -415,7 +455,6 @@ var initApp = function () {
 };
 startUi();
 window.addEventListener('load', initApp);
-
 
 
 onMessage(messaging, async (payload) => {
@@ -459,3 +498,5 @@ function showNotification(title, body, image) {
     notificationBar.style.display = "none";
   }, 5000);
 }
+
+// getTestDoc();

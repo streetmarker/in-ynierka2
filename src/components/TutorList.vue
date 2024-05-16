@@ -58,7 +58,8 @@ import {
         Poziom: {{ selectedTutor.data.level }} <br>
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
-        <MakeVisitDialog  btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" @mounted="handleModalMounted" />
+        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor"
+          @mounted="handleModalMounted" />
         <Calendar />
       </COffcanvasBody>
     </COffcanvas>
@@ -71,7 +72,7 @@ import { ref } from 'vue';
 import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
 
 // const dialogOpen = ref(false);
-import { db, storage, perf } from "../firebaseInitializer";
+import { db, storage, perf, analytics } from "../firebaseInitializer";
 import {
   collection,
   addDoc,
@@ -81,13 +82,15 @@ import {
 } from "firebase/firestore";
 import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
 import { trace } from "firebase/performance";
+import { logEvent } from "firebase/analytics";
+
 
 // setTimeout(() => {
 //   console.log(perf);
 // }, 2000);
 // Inicjalizacja zmiennej, która przechowa referencję do trace
 let t;
-
+const startTime = performance.now()
 // Funkcja do sprawdzania, czy zmienna `perf` została zainicjowana
 const checkPerfInitialization = () => {
   try {
@@ -117,7 +120,7 @@ export default {
   },
   data() {
     return {
-      visitDialog:false,
+      visitDialog: false,
       tutors: [],
       selectedTutor: {
         id: '',
@@ -144,6 +147,10 @@ export default {
     handleModalMounted() {
       // perf
       t.stop();
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
+      const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
+      logEvent(analytics, logData.name, { value: logData.value });
 
     },
     async getTutors() {

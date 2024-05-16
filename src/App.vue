@@ -22,15 +22,6 @@ watch(role, (newRole, oldRole) => {
 <template>
   <div>
     <div class="notification-bar" id="notificationBar"></div>
-    <!-- <CButton
-      color="primary"
-      @click="
-        () => {
-          visible = !visible;
-        }
-      "
-      >Logowanie / Rejestracja</CButton
-    > -->
     <div v-if="!$store.state.role.loggedIn">
     <COffcanvas
       dark
@@ -78,7 +69,7 @@ watch(role, (newRole, oldRole) => {
     </div>
 
     <nav>
-      <router-link to="/"><b>Tutor App</b></router-link> |
+      <router-link style="color: black; font-size: xx-large; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-decoration: none;" to="/">Tutor App</router-link>
       <!-- <router-link to="/">Home</router-link> |
       <router-link to="/login">Login</router-link> | -->
       <!-- TODO Manager do zmiany - zarządzanie wizytami i do zmiany na dg ofertami-->
@@ -140,7 +131,6 @@ watch(role, (newRole, oldRole) => {
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
-import { getToken } from "firebase/messaging";
 // import DarkModeBtn from './components/DarkModeBtn.vue' // TODO
 
 export default {
@@ -240,7 +230,7 @@ export default {
 </script>
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

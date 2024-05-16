@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="container">
+  <div class="container">
     <div class="jumbotron text-center">
       <h1>Aplikacja do zarządzania korepetycjami</h1>
       <p>
@@ -29,8 +29,6 @@
       <div class="col-md-6">
         <h2>Lista korepetytorów</h2>
         <p>Tutaj możesz zobaczyć listę dostępnych korepetytorów.</p>
-        <!-- Dodaj zrzut ekranu z widokiem listy korepetytorów -->
-        <!-- <img style="width: 70vh;" src="https://firebasestorage.googleapis.com/v0/b/justfirstsite.appspot.com/o/front1.png?alt=media&token=86220662-3a15-4231-b00c-3e53f5c85682" alt="Lista korepetytorów"> -->
       </div>
       <div class="col-md-6">
         <h2>Umówienie wizyty</h2>
@@ -40,30 +38,30 @@
         <!-- Dodaj zrzut ekranu z przykładowym umówieniem wizyty -->
         <!-- <img src="umowienie_wizyty.png" alt="Umówienie wizyty"> -->
       </div>
+      <div class="jumbotron text-center">
+        <img class="img-fluid rounded" src="https://firebasestorage.googleapis.com/v0/b/justfirstsite.appspot.com/o/front1.png?alt=media&token=86220662-3a15-4231-b00c-3e53f5c85682" alt="Lista korepetytorów">
+      </div>
     </div>
-    <img style="width: 70vh;" src="https://firebasestorage.googleapis.com/v0/b/justfirstsite.appspot.com/o/front1.png?alt=media&token=86220662-3a15-4231-b00c-3e53f5c85682" alt="Lista korepetytorów">
 
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-// import Dashboard from "@/components/WelcomePage.vue";
-
 export default {
-  name: "HomeView",
-  // components: {
-  //   Dashboard,
-  // },
+  name: "LandingPage",
 };
 </script>
 
-
-<!-- <style scoped>
-/* Dodaj niestandardowe style CSS tutaj */
-#app {
-  background-color: #f0f0f0; /* Kolor tła */
-  background-image: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%); /* Gradient tła */
-  padding: 20px;
+<style scoped>
+/* Dodatkowe style dla obrazków */
+.img-fluid {
+  width: 70vh; 
+  margin-bottom: 20px; 
 }
-</style> -->
+
+.rounded {
+  border: 5px solid #ddd;
+  border-radius: 10px; /* Zaokrąglenie krawędzi */
+  padding: 0;
+}
+</style>
