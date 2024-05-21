@@ -7,6 +7,11 @@ import {
   CModalBody,
   CModalFooter
 } from "@coreui/vue";
+const emit = defineEmits(['open'])
+
+function makeReservation() {
+  emit('open')
+}
 </script>
 <template>
   <CButton color="primary" @click="() => { visibleLiveDemo = true }">{{btnText}}</CButton>
@@ -28,9 +33,11 @@ import {
   </CModal>
 </template>
 <script>
-// import { defineEmits } from 'vue';
+import { defineEmits } from 'vue';
 
-// defineEmits(['mounted']);
+// defineEmits(['open']);
+// const emit = defineEmits(['open'])
+
 
 export default {
   props: {
@@ -63,9 +70,9 @@ export default {
     this.visibleLiveDemo = this.showDialog;
   },
   methods: {
-    makeReservation() {
-      this.$emit('mounted');
-    }
+    // makeReservation() {
+    //   emit('open');
+    // }
   }
 }
 </script>

@@ -8,6 +8,7 @@ import TutorManager from "../views/TutorManager.vue";
 import XWelcomePage from "../views/XWelcomePage.vue";
 import XLandingPage from "../views/XLandingPage.vue";
 import TutorRegister from "../views/TutorRegister.vue";
+import { trackRouter } from "vue-gtag-next";
 
 const routes = [
   {
@@ -61,5 +62,17 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
+
+trackRouter(router, {
+  useScreenview: true
+});
+
+router.afterEach((to) => {
+  gtag('event', 'screen_view', {
+    'app_name': 'TutorApp',
+    'screen_name' : to.path
+  });
+});
+
 
 export default router;

@@ -10,41 +10,247 @@ import {
   COffcanvasHeader,
   COffcanvasTitle,
   CCloseButton,
-  COffcanvasBody
+  COffcanvasBody,
+  CNavItem,
+  CNav,
+  CNavbar,
+  CContainer,
+  CNavbarNav,
+  CCollapse,
+  CNavbarToggler
 } from "@coreui/vue";
+import { ref, computed, onMounted } from 'vue';
+import Calendar from "./Calendar.vue";
+import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
+import { db, storage, perf, analytics } from "../firebaseInitializer";
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
+import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
+import { trace } from "firebase/performance";
+import { logEvent } from "firebase/analytics";
+
+let visible = ref(true)
+const tutors = ref([]);
+const selectedTutor = ref({
+  id: '',
+  data: {
+    last: '',
+    userId: '',
+    level: '',
+    first: '',
+    subject: '',
+    born: '',
+    isActiveTutor: true,
+    description: '',
+    hourRate: 0
+  },
+  img: ''
+});
+const visibleTop = ref(false);
+const subjectFilter = ref('');
+const locationFilter = ref('');
+const priceFilter = ref(null);
+const ratingFilter = ref(null);
+const sortOption = ref('');
+
+const filteredTutors = computed(() => {
+  let result = tutors.value;
+
+  if (subjectFilter.value) {
+    result = result.filter(tutor => tutor.data.subject.includes(subjectFilter.value));
+  }
+  if (locationFilter.value) {
+    result = result.filter(tutor => tutor.data.location && tutor.data.location.includes(locationFilter.value));
+  }
+  if (priceFilter.value !== null) {
+    result = result.filter(tutor => tutor.data.hourRate <= priceFilter.value);
+  }
+  if (ratingFilter.value !== null) {
+    result = result.filter(tutor => tutor.data.rating && tutor.data.rating >= ratingFilter.value);
+  }
+
+  if (sortOption.value) {
+    if (sortOption.value === 'price') {
+      result = result.sort((a, b) => a.data.hourRate - b.data.hourRate);
+    } else if (sortOption.value === 'rating') {
+      result = result.sort((a, b) => b.data.rating - a.data.rating);
+    }
+  }
+
+  return result;
+});
+
+// Inicjalizacja zmiennej, która przechowa referencję do trace
+let t;
+const startTime = performance.now()
+// Funkcja do sprawdzania, czy zmienna `perf` została zainicjowana
+const checkPerfInitialization = () => {
+  try {
+    t = trace(perf, "choose_tutor_time");
+  } catch (e) {
+    setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
+  }
+};
+
+// Wywołanie funkcji sprawdzającej inicjalizację zmiennej `perf`
+checkPerfInitialization();
+
+const getTutors = async () => {
+  tutors.value = [];
+  const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
+  querySnapshot.forEach(async (doc) => {
+    // console.log(`${doc.id} => ${doc.data()}`);
+    let data = doc.data();
+
+    const today = new Date();
+    const born = new Date(data.born);
+    let mils = today - born;
+    data.age = Math.floor(mils / (1000 * 60 * 60 * 24 * 365.25));
+
+    let img = await getProfileImg(data.userId);
+    let formatData = { id: doc.id, data: data, img: img };
+    tutors.value.push(formatData);
+  });
+  // perf
+  try {
+    t.start();
+  } catch (e) {
+    console.error(e);
+  }
+
+};
+
+const getProfileImg = async (uid) => {
+  let spaceRef = firebaseRef(storage, `profile-img/${uid}.jpg`);
+  let defRef = firebaseRef(storage, 'profile-img/default-img.png');
+  try {
+    let url = await getDownloadURL(spaceRef)
+      .then((url) => {
+
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'blob';
+        xhr.onload = (event) => {
+          const blob = xhr.response;
+        };
+        xhr.open('GET', url);
+        xhr.send();
+
+        return url
+      })
+      .catch((error) => {
+        // Handle any errors
+      });
+    return url
+
+  } catch (error) {
+    let url = await getDownloadURL(defRef)
+      .then((url) => {
+
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'blob';
+        xhr.onload = (event) => {
+          const blob = xhr.response;
+        };
+        xhr.open('GET', url);
+        xhr.send();
+
+        return url
+      })
+      .catch((error) => {
+        // Handle any errors
+      });
+    return url
+  }
+};
+
+const tutorDetails = (tutor) => {
+  selectedTutor.value = tutor;
+  visibleTop.value = true;
+};
+
+const handleModalOpened = () => {
+  // perf
+  t.stop();
+  const endTime = performance.now();
+  const executionTime = endTime - startTime;
+  const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
+  logEvent(analytics, logData.name, { value: logData.value });
+
+};
+
+onMounted(() => {
+  getTutors();
+});
 </script>
 
 <template>
-  <div class="hello">
-    <div v-if="tutors.length > 0">
-      <ul>
-        <li v-for="(tutor, index) in tutors" :key="index">
-          <!-- <img :src="tutor.img" alt="">
-          {{ tutor.data.first }} {{ tutor.data.last }} (Ur.
-          {{ tutor.data.born }}), {{ tutor.data.subject }},
-          {{ tutor.data.level }} -->
+  <div>
+    <form @submit.prevent>
+      <CNavbar expand="lg" style="background-color: rgba(255, 255, 255, 0);">
+        <CContainer fluid>
+          <CNavbarNav>
+            <CCollapse class="navbar-collapse" visible="true">
+              <CNavItem>
+                <label for="subject">Przedmiot:</label>
+                <input id="subject" v-model="subjectFilter" placeholder="Przedmiot">
+              </CNavItem>
+              <CNavItem>
+                <label for="subject">Przedmiot:</label>
+                <input id="subject" v-model="subjectFilter" placeholder="Przedmiot">
+              </CNavItem>
+              <CNavItem>
+                <label for="location">Lokalizacja:</label>
+                <input id="location" v-model="locationFilter" placeholder="Lokalizacja">
+              </CNavItem>
+              <CNavItem>
+                <label for="price">Cena maksymalna (PLN/h):</label>
+                <input id="price" v-model.number="priceFilter" type="number" placeholder="Cena maksymalna">
+              </CNavItem>
+              <CNavItem>
+                <label for="price">Sortowanie:</label>
+                <select id="sort" v-model="sortOption">
+                  <option value="">Wybierz opcję</option>
+                  <option value="price">Cena</option>
+                  <option value="rating">Ocena</option>
+                </select>
+              </CNavItem>
+            </CCollapse>
+          </CNavbarNav>
+        </CContainer>
+      </CNavbar>
+    </form>
+    <CContainer>
+      <CRow>
+        <CCol class="align-self-center">
+          <div v-if="filteredTutors.length > 0">
+            <ul>
+              <li v-for="(tutor, index) in filteredTutors" :key="index">
+                <CCard style="">
+                  <CImage style="position: absolute" width="100" height="100" :src="tutor.img" />
+                  <CCardBody>
+                    <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
+                    <CCardText>Wiek: {{ tutor.data.age }}<br>
+                      Przedmiot:{{ tutor.data.subject }}<br>
+                      Poziom: {{ tutor.data.level }} <br>
+                      Stawka (h) {{ tutor.data.hourRate }} <br>
+                      Bio: {{ tutor.data.description }} <br>
+                      Ocena ⭐⭐⭐⭐<br>
+                      🗺️ ul. Testowa 33 Warszawa<br></CCardText>
+                    <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
+                  </CCardBody>
+                </CCard>
+              </li>
+            </ul>
+          </div>
+        </CCol>
+      </CRow>
+    </CContainer>
 
-          <CCard style="width: 18rem">
-            <CImage width="50" height="50" :src="tutor.img" />
-            <CCardBody>
-              <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
-              <CCardText>Wiek: {{ tutor.data.age }}<br>
-                Przedmiot:{{ tutor.data.subject }}<br>
-                Poziom: {{ tutor.data.level }} <br>
-                Stawka (h) {{ tutor.data.hourRate }} <br>
-                Bio: {{ tutor.data.description }}</CCardText>
-
-              <!-- <CButton color="primary" href="#">Szczegóły</CButton> -->
-              <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
-            </CCardBody>
-          </CCard>
-        </li>
-      </ul>
-    </div>
-    <!-- <CButton color="primary" @click="() => { visibleTop = !visibleTop }">Toggle top offcanvas</CButton> -->
     <COffcanvas placement="start" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
       <COffcanvasHeader>
-        <div v-if="tutors.length > 0">
+        <div v-if="selectedTutor">
           <COffcanvasTitle>
             <CImage width="50" height="50" :src="selectedTutor.img" alt="" /> {{ selectedTutor.data.first }} {{
               selectedTutor.data.last }}
@@ -58,171 +264,12 @@ import {
         Poziom: {{ selectedTutor.data.level }} <br>
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
-        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor"
-          @mounted="handleModalMounted" />
+        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" @open="handleModalOpened" />
         <Calendar />
       </COffcanvasBody>
     </COffcanvas>
   </div>
 </template>
-
-<script>
-import Calendar from "./Calendar.vue";
-import { ref } from 'vue';
-import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
-
-// const dialogOpen = ref(false);
-import { db, storage, perf, analytics } from "../firebaseInitializer";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
-import { trace } from "firebase/performance";
-import { logEvent } from "firebase/analytics";
-
-
-// setTimeout(() => {
-//   console.log(perf);
-// }, 2000);
-// Inicjalizacja zmiennej, która przechowa referencję do trace
-let t;
-const startTime = performance.now()
-// Funkcja do sprawdzania, czy zmienna `perf` została zainicjowana
-const checkPerfInitialization = () => {
-  try {
-    t = trace(perf, "choose_tutor_time");
-  } catch (e) {
-    setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
-  }
-  // if (perf && perf.initialized === true) {
-  //   // `perf` jest zainicjowane, możemy wykonać logikę związana z tym
-  //   t = trace(perf, "choose_tutor_time");
-
-  //   // Tutaj możesz wykonać inne czynności, które wymagają zmiennej `perf`
-  //   // np. dodanie oznaczeń do śledzenia wydajności
-  // } else {
-  //   // Zmienna `perf` nie została jeszcze zainicjowana, czekamy i sprawdzamy ponownie za krótki okres czasu
-  //   setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
-  // }
-};
-
-// Wywołanie funkcji sprawdzającej inicjalizację zmiennej `perf`
-checkPerfInitialization();
-
-export default {
-  name: "Dashboard",
-  components: {
-    Calendar,
-  },
-  data() {
-    return {
-      visitDialog: false,
-      tutors: [],
-      selectedTutor: {
-        id: '',
-        data: {
-          last: '',
-          userId: '',
-          level: '',
-          first: '',
-          subject: '',
-          born: '',
-          isActiveTutor: true,
-          description: '',
-          hourRate: 0
-        },
-        img: ''
-      },
-      visibleTop: false,
-    };
-  },
-  mounted() {
-    this.getTutors();
-  },
-  methods: {
-    handleModalMounted() {
-      // perf
-      t.stop();
-      const endTime = performance.now();
-      const executionTime = endTime - startTime;
-      const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
-      logEvent(analytics, logData.name, { value: logData.value });
-
-    },
-    async getTutors() {
-      this.tutors = [];
-      const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
-      querySnapshot.forEach(async (doc) => {
-        // console.log(`${doc.id} => ${doc.data()}`);
-        let data = doc.data();
-
-        const today = new Date();
-        const born = new Date(data.born);
-        let mils = today - born;
-        data.age = Math.floor(mils / (1000 * 60 * 60 * 24 * 365.25));
-
-        let img = await this.getProfileImg(data.userId);
-        let formatData = { id: doc.id, data: data, img: img };
-        this.tutors.push(formatData);
-      });
-      // perf
-      t.start();
-
-    },
-    tutorDetails(tutor) {
-      this.selectedTutor = tutor;
-      this.visibleTop = true;
-    },
-    async getProfileImg(uid) {
-
-      let spaceRef = firebaseRef(storage, `profile-img/${uid}.jpg`);
-      let defRef = firebaseRef(storage, 'profile-img/default-img.png');
-      try {
-        let url = await getDownloadURL(spaceRef)
-          .then((url) => {
-
-            const xhr = new XMLHttpRequest();
-            xhr.responseType = 'blob';
-            xhr.onload = (event) => {
-              const blob = xhr.response;
-            };
-            xhr.open('GET', url);
-            xhr.send();
-
-            return url
-          })
-          .catch((error) => {
-            // Handle any errors
-          });
-        return url
-
-      } catch (error) {
-        let url = await getDownloadURL(defRef)
-          .then((url) => {
-
-            const xhr = new XMLHttpRequest();
-            xhr.responseType = 'blob';
-            xhr.onload = (event) => {
-              const blob = xhr.response;
-            };
-            xhr.open('GET', url);
-            xhr.send();
-
-            return url
-          })
-          .catch((error) => {
-            // Handle any errors
-          });
-        return url
-      }
-    }
-  },
-};
-</script>
 
 <style scoped>
 h3 {
