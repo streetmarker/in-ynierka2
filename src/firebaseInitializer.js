@@ -14,6 +14,8 @@ import router from "./router/index";
 import { getAnalytics, logEvent } from "firebase/analytics";
 import { getPerformance } from "firebase/performance";
 import { trace } from "firebase/performance";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+
 
 Loader.open();
 // TODO: Replace the following with your app's Firebase project configuration
@@ -56,6 +58,27 @@ export var ui = new firebaseui.auth.AuthUI(auth);
 export const analytics = getAnalytics(app);
 
 export const storage = getStorage();
+
+// Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
+// key is the counterpart to the secret key you set in the Firebase console.
+// const appCheck = 
+if (process.env.NODE_ENV === "production") {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.VUE_APP_RECAPTCHA_PRD),
+  
+    // Optional argument. If true, the SDK automatically refreshes App Check
+    // tokens as needed.
+    isTokenAutoRefreshEnabled: true
+  });
+} else {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.VUE_APP_RECAPTCHA_DEV),
+  
+    // Optional argument. If true, the SDK automatically refreshes App Check
+    // tokens as needed.
+    isTokenAutoRefreshEnabled: true
+  });
+}
 
 export const token = getToken(messaging, {
   vapidKey:

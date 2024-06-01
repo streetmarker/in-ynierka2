@@ -140,6 +140,7 @@ watch(role, (newRole, oldRole) => {
         <span>&copy; 2024</span>
       </div>
     </CFooter>
+    <!-- <reCAPTCHA /> -->
   </div>
 </template>
 
@@ -147,12 +148,12 @@ watch(role, (newRole, oldRole) => {
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
-// import DarkModeBtn from './components/DarkModeBtn.vue' // TODO
+import reCAPTCHA from './components/reCAPTCHA.vue' // TODO
 
 export default {
-  // components: {
-  //   DarkModeBtn
-  // },
+  components: {
+    reCAPTCHA
+  },
   data() {
     return {
       logs: [],

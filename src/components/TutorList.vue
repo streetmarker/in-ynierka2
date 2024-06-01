@@ -17,7 +17,17 @@ import {
   CContainer,
   CNavbarNav,
   CCollapse,
-  CNavbarToggler
+  CNavbarToggler,
+  CNavbarBrand,
+  CForm,
+  CFormInput,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
+  CDropdownDivider,
+  CRow,
+  CCol
 } from "@coreui/vue";
 import { ref, computed, onMounted } from 'vue';
 import Calendar from "./Calendar.vue";
@@ -187,43 +197,40 @@ onMounted(() => {
 
 <template>
   <div>
-    <form @submit.prevent>
-      <CNavbar expand="lg" style="background-color: rgba(255, 255, 255, 0);">
-        <CContainer fluid>
-          <CNavbarNav>
-            <CCollapse class="navbar-collapse" visible="true">
-              <CNavItem>
-                <label for="subject">Przedmiot:</label>
-                <input id="subject" v-model="subjectFilter" placeholder="Przedmiot">
-              </CNavItem>
-              <CNavItem>
-                <label for="subject">Przedmiot:</label>
-                <input id="subject" v-model="subjectFilter" placeholder="Przedmiot">
-              </CNavItem>
-              <CNavItem>
-                <label for="location">Lokalizacja:</label>
-                <input id="location" v-model="locationFilter" placeholder="Lokalizacja">
-              </CNavItem>
-              <CNavItem>
-                <label for="price">Cena maksymalna (PLN/h):</label>
-                <input id="price" v-model.number="priceFilter" type="number" placeholder="Cena maksymalna">
-              </CNavItem>
-              <CNavItem>
-                <label for="price">Sortowanie:</label>
-                <select id="sort" v-model="sortOption">
-                  <option value="">Wybierz opcję</option>
+    <CNavbar expand="lg" style="background-color: rgba(255, 255, 255, 0);">
+      <CNavbarBrand>Filtry</CNavbarBrand>
+      <CContainer fluid>
+        <CNavbarNav>
+          <CForm class="d-flex">
+            <CFormInput class="me-2" id="subject" v-model="subjectFilter" placeholder="Przedmiot" />
+            <CFormInput class="me-2" id="subject" v-model="subjectFilter" placeholder="Poziom" />
+            <CFormInput class="me-2" id="location" v-model="locationFilter" placeholder="Lokalizacja" />
+            <CFormInput class="me-2" id="price" v-model.number="priceFilter" type="number" placeholder="Maks stawka" />
+            <CDropdown class='bg-light' variant="nav-item" :popper="false">
+              <CDropdownToggle color="secondary">Sortowanie</CDropdownToggle>
+              <!-- <CDropdownMenu id="sort" v-model="sortOption">
+                <CDropdownItem value="">test</CDropdownItem>
+                <CDropdownItem value="price">Cena</CDropdownItem>
+                <CDropdownItem value="rating">Ocena</CDropdownItem>
+              </CDropdownMenu> -->
+
+              <!-- <select id="sort" v-model="sortOption">
+                  <option value="">Sortowanie</option>
                   <option value="price">Cena</option>
                   <option value="rating">Ocena</option>
-                </select>
-              </CNavItem>
-            </CCollapse>
-          </CNavbarNav>
-        </CContainer>
-      </CNavbar>
-    </form>
+                </select> -->
+            </CDropdown>
+            <!-- <CButton type="submit" color="success" variant="outline">
+              Search
+            </CButton> -->
+          </CForm>
+        </CNavbarNav>
+      </CContainer>
+    </CNavbar>
+    
     <CContainer>
-      <CRow>
-        <CCol class="align-self-center">
+      <!-- <CRow> -->
+        <!-- <CCol class="align-self-center"> -->
           <div v-if="filteredTutors.length > 0">
             <ul>
               <li v-for="(tutor, index) in filteredTutors" :key="index">
@@ -237,15 +244,15 @@ onMounted(() => {
                       Stawka (h) {{ tutor.data.hourRate }} <br>
                       Bio: {{ tutor.data.description }} <br>
                       Ocena ⭐⭐⭐⭐<br>
-                      🗺️ ul. Testowa 33 Warszawa<br></CCardText>
+                      🗺️ ul. Testowa {{ Math.floor(tutor.data.hourRate * 1.33) }} Warszawa<br></CCardText>
                     <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
                   </CCardBody>
                 </CCard>
               </li>
             </ul>
           </div>
-        </CCol>
-      </CRow>
+        <!-- </CCol> -->
+      <!-- </CRow> -->
     </CContainer>
 
     <COffcanvas placement="start" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
@@ -264,7 +271,7 @@ onMounted(() => {
         Poziom: {{ selectedTutor.data.level }} <br>
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
-        <MakeVisitDialog btnText="Umów" :showDialog="visitDialog" :tutor="selectedTutor" @open="handleModalOpened" />
+        <MakeVisitDialog btnText="Umów"  :tutor="selectedTutor" @open="handleModalOpened" />
         <Calendar />
       </COffcanvasBody>
     </COffcanvas>

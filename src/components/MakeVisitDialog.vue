@@ -41,10 +41,10 @@ import { defineEmits } from 'vue';
 
 export default {
   props: {
-    showDialog: {
-      type: Boolean,
-      required: true
-    },
+    // showDialog: {
+    //   type: Boolean,
+    //   required: true
+    // },
     tutor: {
       type: Object,
       required: true
@@ -66,9 +66,9 @@ export default {
       return this.$store.state.tmpVisitDate.toLocaleString(); // TODO do komponentu
     },
   },
-  mounted() {
-    this.visibleLiveDemo = this.showDialog;
-  },
+  // mounted() {
+  //   this.visibleLiveDemo = this.showDialog;
+  // },
   methods: {
     // makeReservation() {
     //   emit('open');
