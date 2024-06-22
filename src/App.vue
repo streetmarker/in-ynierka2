@@ -33,7 +33,8 @@ watch(role, (newRole, oldRole) => {
 
 <template>
   <div id="app">
-    <div class="notification-bar" id="notificationBar"></div>
+    <!-- <div class="notification-bar" id="notificationBar"></div> -->
+    <ToastMsg />
     <div v-if="!$store.state.role.loggedIn">
       <COffcanvas dark placement="start" :visible="visible" @hide="() => {
         visible = !visible;
@@ -149,10 +150,12 @@ import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
 import reCAPTCHA from './components/reCAPTCHA.vue' // TODO
+import ToastMsg from './components/ToastMsg.vue'
 
 export default {
   components: {
-    reCAPTCHA
+    reCAPTCHA,
+    ToastMsg
   },
   data() {
     return {
@@ -292,11 +295,12 @@ nav a.router-link-exact-active {
   top: 0;
   left: 0;
   width: 100%;
-  background-color: #333;
+  background-color: mediumseagreen;
   color: #fff;
   padding: 10px;
   text-align: center;
   display: none;
+  z-index: 1000;
 }
 
 .notification-bar img {

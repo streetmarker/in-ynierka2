@@ -65,7 +65,7 @@ export const storage = getStorage();
 if (process.env.NODE_ENV === "production") {
   initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(process.env.VUE_APP_RECAPTCHA_PRD),
-  
+
     // Optional argument. If true, the SDK automatically refreshes App Check
     // tokens as needed.
     isTokenAutoRefreshEnabled: true
@@ -73,7 +73,7 @@ if (process.env.NODE_ENV === "production") {
 } else {
   initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(process.env.VUE_APP_RECAPTCHA_DEV),
-  
+
     // Optional argument. If true, the SDK automatically refreshes App Check
     // tokens as needed.
     isTokenAutoRefreshEnabled: true
@@ -101,25 +101,25 @@ export const token = getToken(messaging, {
 
 t.stop();
 async function getTestDoc() {
-    try {
-      // Pobranie utworzonego dokumentu
-      // const snapshot = await db.collection('visit').get();
-      // const docRef = doc(db, "visit");
-      // const docSnap = await getDoc(docRef);
-      const querySnapshot = await getDocs(collection(db, "visit"));
-  
-      // Wyświetlenie danych dokumentu
-      querySnapshot.forEach(doc => {
-        console.log(doc.id, '=>', doc.data());
-      });
-  
-      console.log('Pobranie dokumentu zakończone sukcesem.');
-  
-    } catch (error) {
-      console.error('Błąd podczas testowania reguł Firestore:', error);
-    }
+  try {
+    // Pobranie utworzonego dokumentu
+    // const snapshot = await db.collection('visit').get();
+    // const docRef = doc(db, "visit");
+    // const docSnap = await getDoc(docRef);
+    const querySnapshot = await getDocs(collection(db, "visit"));
+
+    // Wyświetlenie danych dokumentu
+    querySnapshot.forEach(doc => {
+      console.log(doc.id, '=>', doc.data());
+    });
+
+    console.log('Pobranie dokumentu zakończone sukcesem.');
+
+  } catch (error) {
+    console.error('Błąd podczas testowania reguł Firestore:', error);
   }
-  
+}
+
 
 // insertTestDoc();
 // getTestDoc();
@@ -430,17 +430,17 @@ var initApp = function () {
     auth.signOut();
     // startUi();
     // setTimeout(() => {
-      Loader.open();
-      function tmp(cb) {
-        try {
-          renderLoginUI();
-          Loader.close();
-        } catch (error) {
-          setTimeout(() => {
-            tmp();
-          }, 1000);
-        }
+    Loader.open();
+    function tmp(cb) {
+      try {
+        renderLoginUI();
+        Loader.close();
+      } catch (error) {
+        setTimeout(() => {
+          tmp();
+        }, 1000);
       }
+    }
     tmp();
   });
   // document.getElementById('sign-out').style.display = 'none';
@@ -484,42 +484,47 @@ onMessage(messaging, async (payload) => {
   console.log(`Message received: ${payload}`);
   setTimeout(() => {
     appendMessage(payload);
-    let date = new Date().toLocaleString()
-    let data = {
-      recipientId: auth.currentUser.uid,
-      recipientFullName: auth.currentUser.fullName,
-      text: payload.notification.title,
-      status: 'recived',
-      reciveDate: date
-    };
-    setDoc(doc(db, "notification", date), data);
   }, 5000);
+  let date = new Date().toLocaleString();
+  let data = {
+    recipientId: auth.currentUser.uid,
+    recipientFullName: !!auth.currentUser.displayName ? auth.currentUser.displayName : 'undefined',
+    text: payload.notification.title,
+    status: 'recived',
+    reciveDate: date
+  };
+  setDoc(doc(db, "notification", date), data);
 });
 
-// Add a message to the messages element.
 function appendMessage(payload) {
-  showNotification(
-    payload.notification.title,
-    payload.notification.body,
-    payload.notification.image
-  );
+  // showNotification(
+  //   payload.notification.title,
+  //   payload.notification.body,
+  //   payload.notification.image
+  // );
+  triggerToastFromExternalJS(payload.notification.title, payload.notification.body, payload.notification.image);
 }
 
-function showNotification(title, body, image) {
-  const notificationBar = document.getElementById("notificationBar");
-  const notificationContent = document.createElement("div");
-  const imageElement = document.createElement("img");
-  imageElement.src = image;
-  const textElement = document.createElement("span");
-  textElement.textContent = `${title}: ${body}`;
-  notificationContent.appendChild(imageElement);
-  notificationContent.appendChild(textElement);
-  notificationBar.innerHTML = "";
-  notificationBar.appendChild(notificationContent);
-  notificationBar.style.display = "block";
-  setTimeout(() => {
-    notificationBar.style.display = "none";
-  }, 5000);
+function triggerToastFromExternalJS(title, content, photoUrl) {
+  const event = new CustomEvent('trigger-toast', {
+    detail: { title, content, photoUrl }
+  });
+  window.dispatchEvent(event);
 }
 
-// getTestDoc();
+// function showNotification(title, body, image) {
+//   const notificationBar = document.getElementById("notificationBar");
+//   const notificationContent = document.createElement("div");
+//   const imageElement = document.createElement("img");
+//   imageElement.src = image;
+//   const textElement = document.createElement("span");
+//   textElement.textContent = `${title}: ${body}`;
+//   notificationContent.appendChild(imageElement);
+//   notificationContent.appendChild(textElement);
+//   notificationBar.innerHTML = "";
+//   notificationBar.appendChild(notificationContent);
+//   notificationBar.style.display = "block";
+//   setTimeout(() => {
+//     notificationBar.style.display = "none";
+//   }, 5000);
+// }
