@@ -182,11 +182,16 @@ const tutorDetails = (tutor) => {
 
 const handleModalOpened = () => {
   // perf
-  t.stop();
-  const endTime = performance.now();
-  const executionTime = endTime - startTime;
-  const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
-  logEvent(analytics, logData.name, { value: logData.value });
+  try {
+    t.stop();
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+    const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
+    logEvent(analytics, logData.name, { value: logData.value });
+    
+  } catch (error) {
+    
+  }
 
 };
 

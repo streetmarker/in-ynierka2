@@ -109,6 +109,7 @@ watch(role, (newRole, oldRole) => {
             visible = !visible;
           }
             "><u>Logowanie / Rejestracja</u></CButton>
+          <img style="width: 3vh; border: 1px solid transparent;" :src="$store.state.user.photo" />
           <b><i>{{ $store.state.user.fullName }}</i></b>
           <CButton id="sign-out" style="text-decoration: none;" class="bg-dark"> <u>Wyloguj się</u></CButton>
         </div>
@@ -131,17 +132,13 @@ watch(role, (newRole, oldRole) => {
     </div> -->
     <CFooter style="border-top: 2px solid grey;" class="bg-dark">
       <div>
-        <!-- <CLink href="https://coreui.io">Tutor App</CLink>
-        <span>&copy; 2024</span> -->
+        <CLink href="https://coreui.io">Tutor App</CLink>
+        <span> &copy; 2024</span>
       </div>
       <div>
-        <!-- <span>Powered by</span>
-        <CLink href="https://coreui.io">CoreUI</CLink> -->
-        <CLink href="https://coreui.io">Tutor App</CLink>
-        <span>&copy; 2024</span>
+        <!-- right side -->
       </div>
     </CFooter>
-    <!-- <reCAPTCHA /> -->
   </div>
 </template>
 
@@ -149,12 +146,10 @@ watch(role, (newRole, oldRole) => {
 import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
-import reCAPTCHA from './components/reCAPTCHA.vue' // TODO
 import ToastMsg from './components/ToastMsg.vue'
 
 export default {
   components: {
-    reCAPTCHA,
     ToastMsg
   },
   data() {
@@ -317,5 +312,8 @@ nav a.router-link-exact-active {
   /* Wyśrodkowuje zawartość w pionie */
   justify-content: center;
   /* Wyśrodkowuje zawartość w poziomie */
+}
+#fire_app_check_\[DEFAULT\] {
+  display: initial !important
 }
 </style>

@@ -48,6 +48,8 @@ t.start();
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+export { firebase };
+
 // Initialize Firebase Cloud Messaging and get a reference to the service
 export const messaging = getMessaging(app);
 // Initialize Firebase Authentication and get a reference to the service
@@ -100,6 +102,7 @@ export const token = getToken(messaging, {
   });
 
 t.stop();
+
 async function getTestDoc() {
   try {
     // Pobranie utworzonego dokumentu
@@ -119,10 +122,6 @@ async function getTestDoc() {
     console.error('Błąd podczas testowania reguł Firestore:', error);
   }
 }
-
-
-// insertTestDoc();
-// getTestDoc();
 
 function waitForCurrentUser(callback, maxWaitTime = 3000, interval = 500) {
   let elapsedTime = 0;
@@ -476,9 +475,9 @@ var initApp = function () {
   // document.getElementById("admin-restricted-operation-status").checked =
   //     getAdminRestrictedOperationStatus();  
 };
+
 startUi();
 window.addEventListener('load', initApp);
-
 
 onMessage(messaging, async (payload) => {
   console.log(`Message received: ${payload}`);
@@ -497,34 +496,12 @@ onMessage(messaging, async (payload) => {
 });
 
 function appendMessage(payload) {
-  // showNotification(
-  //   payload.notification.title,
-  //   payload.notification.body,
-  //   payload.notification.image
-  // );
   triggerToastFromExternalJS(payload.notification.title, payload.notification.body, payload.notification.image);
 }
 
 function triggerToastFromExternalJS(title, content, photoUrl) {
   const event = new CustomEvent('trigger-toast', {
-    detail: { title, content, photoUrl }
+    detail: { title, content, photoUrl, hide: false }
   });
   window.dispatchEvent(event);
 }
-
-// function showNotification(title, body, image) {
-//   const notificationBar = document.getElementById("notificationBar");
-//   const notificationContent = document.createElement("div");
-//   const imageElement = document.createElement("img");
-//   imageElement.src = image;
-//   const textElement = document.createElement("span");
-//   textElement.textContent = `${title}: ${body}`;
-//   notificationContent.appendChild(imageElement);
-//   notificationContent.appendChild(textElement);
-//   notificationBar.innerHTML = "";
-//   notificationBar.appendChild(notificationContent);
-//   notificationBar.style.display = "block";
-//   setTimeout(() => {
-//     notificationBar.style.display = "none";
-//   }, 5000);
-// }

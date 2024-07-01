@@ -25,7 +25,8 @@ export default createStore({
       loggedIn: false
     },
     tmpRole: '', // selected role on login 
-    tmpVisitDate: null
+    tmpVisitDate: null,
+    userVisits: []
   },
   getters: {
     getTmpRole: (state) => {
@@ -43,6 +44,9 @@ export default createStore({
   },
   mutations: {
     setUser(state, userData) {
+      if (!userData.photo) {
+        userData.photo = 'https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg'
+      }
       state.user = userData;
     },
     setTutor(state, tutorData) {
@@ -62,6 +66,9 @@ export default createStore({
     },
     setTmpVisitDate(state, tmpVisitDate) {
       state.tmpVisitDate = tmpVisitDate;
+    },
+    setUserVisits(state, userVisitsData) {
+      state.userVisits = userVisitsData;
     },
     setIsActiveTutor(state, isActive) {
       state.isActiveTutor = isActive;

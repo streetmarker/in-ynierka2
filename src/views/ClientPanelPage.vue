@@ -34,8 +34,10 @@ import {
               <div v-if="userData.fullName.length !== 0">
                 <h1>{{ userData.fullName }}</h1>
                 <p>{{ userData.email }}</p>
-                <img style="width: 50px; height: 50px;" src="https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg" alt="User Photo" />
-                <!-- <img :src="userData.photo" alt="User Photo" /> -->
+                <!-- <img style="width: 50px; height: 50px;"
+                  src="https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg"
+                  alt="User Photo" /> -->
+                <img style="width: 50px; height: 50px;" :src="userData.photo" alt="User Photo" />
               </div>
             </CCardBody>
           </CCard>
@@ -65,15 +67,18 @@ import {
                       </div> -->
                       <div class="mb-3">
                         <CFormLabel>Miasto</CFormLabel>
-                        <Multiselect v-model="selectedOptionsC" :options="optionsC" :multiple="true" label="name" track-by="id" />
+                        <Multiselect v-model="selectedOptionsC" :options="optionsC" :multiple="true" label="name"
+                          track-by="id" />
                       </div>
                       <div class="mb-3">
                         <CFormLabel>Przedmioty</CFormLabel>
-                        <Multiselect v-model="selectedOptionsS" :options="optionsS" :multiple="true" label="name" track-by="id" />
+                        <Multiselect v-model="selectedOptionsS" :options="optionsS" :multiple="true" label="name"
+                          track-by="id" />
                       </div>
                       <div class="mb-3">
                         <CFormLabel>Poziom</CFormLabel>
-                        <Multiselect v-model="selectedOptionsL" :options="optionsL" :multiple="false" label="name" track-by="id" />
+                        <Multiselect v-model="selectedOptionsL" :options="optionsL" :multiple="false" label="name"
+                          track-by="id" />
                       </div>
                       <!-- <label>
                       Miasto:
@@ -121,51 +126,15 @@ import {
       </CRow>
     </CContainer>
 
-    <div class="appointments">
-      <h2>Umówione wizyty</h2>
-      <ul>
-        <li v-for="appointment in userData.appointments" :key="appointment.id">
-          <p>Data: {{ appointment.date }}</p>
-          <p>Korepetytor: {{ appointment.tutorName }}</p>
-          <p>Przedmiot: {{ appointment.subject }}</p>
-        </li>
-      </ul>
-    </div>
-    <CTable>
-      <CTableHead>
-        <CTableRow>
-          <CTableHeaderCell scope="col">#</CTableHeaderCell>
-          <CTableHeaderCell scope="col">Korepetytor</CTableHeaderCell>
-          <CTableHeaderCell scope="col">Przedmiot</CTableHeaderCell>
-          <CTableHeaderCell scope="col">Data</CTableHeaderCell>
-          <CTableHeaderCell scope="col">Stawka</CTableHeaderCell>
-          <CTableHeaderCell scope="col">Ilość godz.</CTableHeaderCell>
-        </CTableRow>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow active>
-          <CTableHeaderCell scope="row">1</CTableHeaderCell>
-          <CTableDataCell>Agata Kwiatkowska</CTableDataCell>
-          <CTableDataCell>Matematyka</CTableDataCell>
-          <CTableDataCell>31.05.2024, 02:00:00</CTableDataCell>
-          <CTableDataCell>80</CTableDataCell>
-          <CTableDataCell>1</CTableDataCell>
-        </CTableRow>
-        <CTableRow>
-          <CTableHeaderCell scope="row">2</CTableHeaderCell>
-          <CTableDataCell>Agata Kwiatkowska</CTableDataCell>
-          <CTableDataCell>Matematyka</CTableDataCell>
-          <CTableDataCell>06.06.2024, 04:00:00</CTableDataCell>
-          <CTableDataCell>80</CTableDataCell>
-          <CTableDataCell>2</CTableDataCell>
-        </CTableRow>
-      </CTableBody>
-    </CTable>
+    <VisitsList />
   </div>
 </template>
 
 <script>
+import VisitsList from "@/components/VisitsList.vue";
 import Multiselect from 'vue-multiselect';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebaseInitializer";
 
 export default {
   name: "ClientPanel",
@@ -189,8 +158,12 @@ export default {
         { name: 'Fizyka', id: 2 }
       ], optionsL: [
         { name: 'Studia(rozszerzenie)', id: 1 }
-      ]
+      ],
+      visitsDb: []
     };
+  },
+  mounted() {
+    this.getVisits();
   },
   computed: {
     userData() {
@@ -208,6 +181,14 @@ export default {
   methods: {
     saveChanges() {
       this.$store.commit('updateUser', this.editableData);
+    },
+    async getVisits() {
+      var UID = this.$store.state.user.id;
+      const q = query(collection(db, "visit"), where("clientId", "==", UID));
+
+      const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
+        this.visitsDb.push(doc.data())
+      })
     }
   }
 };

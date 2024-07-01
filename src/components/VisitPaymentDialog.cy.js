@@ -1,4 +1,4 @@
-import ClientMakeVisit from './ClientMakeVisit.vue'
+import ClientMakeVisit from './VisitPaymentDialog.vue'
 
 describe('<ClientMakeVisit />', () => {
   it('renders', () => {

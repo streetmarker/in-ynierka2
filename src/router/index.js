@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import AdminPage from "../views/AdminPage.vue";
-import ClientMakeVisit from "../views/ClientMakeVisit.vue";
+import ClientMakeVisit from "../components/VisitPaymentDialog.vue";
 import ClientPanelPage from "../views/ClientPanelPage.vue";
 import ClientTutorListPage from "../views/ClientTutorListPage.vue";
 import TutorAdmin from "../views/TutorAdmin.vue";

@@ -13,7 +13,7 @@ import {
 <template>
     <!-- <CButton color="primary" @click="createToast('Example Title', 'Example content', 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28dp.png')">Send a toast</CButton> -->
     <CToaster class="p-3" placement="top-end">
-      <CToast :autohide="false" v-for="(toast, index) in toasts" visible :key="index">
+      <CToast :autohide="toast.hide" v-for="(toast, index) in toasts" visible :key="index">
         <CToastHeader closeButton>
           <span class="me-auto fw-bold">{{ toast.title }}</span>
           <small>teraz</small>
@@ -34,11 +34,12 @@ import {
       };
     },
     methods: {
-      createToast(title, content, photoUrl) {
+      createToast(title, content, photoUrl,  hide) {
         this.toasts.push({
           title: title,
           content: content,
-          photoUrl: photoUrl
+          photoUrl: photoUrl,
+          hide: hide
         });
       }
     },
@@ -50,14 +51,15 @@ import {
     },
     methods: {
       externalCreateToast(event) {
-        const { title, content, photoUrl } = event.detail;
-        this.createToast(title, content, photoUrl);
+        const { title, content, photoUrl, hide } = event.detail;
+        this.createToast(title, content, photoUrl, hide);
       },
-      createToast(title, content, photoUrl) {
+      createToast(title, content, photoUrl, hide) {
         this.toasts.push({
           title: title,
           content: content,
-          photoUrl: photoUrl
+          photoUrl: photoUrl,
+          hide: hide
         });
       }
     }
