@@ -87,8 +87,6 @@ export const isUpdated = async (dbPromise, idbData) => { // TODO coś mniej poda
   // querySnapshot.forEach((doc) => {
   //   res.push(doc.data())
   // });
-  console.log('query',querySnapshot);
-  console.log('db',idbData);
 
   if (querySnapshot.docs.length != idbData.length) {
     console.log('isUpdated:update:',dbData);
