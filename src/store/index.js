@@ -24,7 +24,7 @@ export default createStore({
       type: '',
       loggedIn: false
     },
-    tmpRole: '', // selected role on login 
+    tmpRole: 'C', // selected role on login 
     tmpVisitDate: null,
     userVisits: []
   },

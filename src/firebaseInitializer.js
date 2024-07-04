@@ -32,12 +32,74 @@ const firebaseConfig = {
   appId: process.env.VUE_APP_APP_ID,
   measurementId: process.env.VUE_APP_MEASUREMENT_ID,
 };
-var dbPromise = idb.open('tutors', 1, function (db) {
+// IDB //////////////////////////
+export const dbPromiseTutors = idb.open('tutor', 1, function (db) { // TODO globalne funkcje obsługi idb
   if (!db.objectStoreNames.contains('tutor')) {
-    db.createObjectStore('tutor', { keyPath: 'id' })
+    db.createObjectStore('tutor', { keyPath: 'id' });
+  }
+})
+export const dbPromiseVisits = idb.open('visit', 1, function (db) { // TODO del on logout
+  if (!db.objectStoreNames.contains('visit')) {
+    db.createObjectStore('visit', { keyPath: 'id' });
   }
 })
 
+export const getIdbData = async (dbPromise) => {
+  try {
+    const dbPromiseGet = await dbPromise;
+    const dbName = dbPromiseGet.name;
+    return new Promise((resolve, reject) => {
+      const transaction = dbPromiseGet.transaction([dbName], 'readonly');
+      const objectStore = transaction.objectStore(dbName);
+      const request = objectStore.getAll();
+
+      resolve(request)
+      // request.then((e) => {
+      //   return e
+      // })
+    });
+
+  } catch (error) {
+    console.log('eror', error);
+  }
+};
+export const putIdbData = async (dbPromise, dataArray) => {
+  var dbPromiseIn = await dbPromise;
+  const dbName = dbPromiseIn.name;
+  var tx = dbPromiseIn.transaction(dbName, 'readwrite');
+  var storeDb = tx.objectStore(dbName);
+  dataArray.forEach(el => {
+    storeDb.put(el);
+  });
+};
+export const deleteIdbData = async (dbPromise) => { // TODO coś lepszego
+  var dbPromiseIn = await dbPromise;
+  const dbName = dbPromiseIn.name;
+  idb.delete(dbName)
+}
+export const isUpdated = async (dbPromise, idbData) => { // TODO coś mniej podatnego na błąd
+  var dbPromiseIn = await dbPromise;
+  const dbData = getIdbData(dbPromiseIn);
+  const dbName = dbPromiseIn.name;
+  // const res = null;
+
+  const querySnapshot = await getDocs(collection(db, dbName));
+  // querySnapshot.forEach((doc) => {
+  //   res.push(doc.data())
+  // });
+  console.log('query',querySnapshot);
+  console.log('db',idbData);
+
+  if (querySnapshot.docs.length != idbData.length) {
+    console.log('isUpdated:update:',dbData);
+    return true
+  }
+  else {
+    console.log('isUpdated:data from cache:',dbData);
+    return false
+  }
+}
+///////////////////////////////
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 // Initialize Performance Monitoring and get a reference to the service
@@ -352,7 +414,7 @@ function renderLoginUI() {
             fullName: authResult.user.displayName,
             email: authResult.user.email,
             photo: authResult.user.photoURL,
-            provider: authResult.user.providerData.providerId
+            provider: authResult.user.providerData // can be list if more than one method for email ex. google and password (logged by google)
           }
           store.commit('setUser', formatData);
         } else {
@@ -413,6 +475,8 @@ var initApp = function () {
   document.getElementById('sign-out').addEventListener('click', function () {
 
     auth.signOut();
+    deleteIdbData(dbPromiseVisits);
+
     // let user = {
     //   id: "",
     //   fullName: "",
@@ -426,9 +490,7 @@ var initApp = function () {
 
     document.getElementById('sign-out').style.display = 'none';
     document.getElementById('sign-in').style.display = 'initial';
-    auth.signOut();
-    // startUi();
-    // setTimeout(() => {
+
     Loader.open();
     function tmp(cb) {
       try {

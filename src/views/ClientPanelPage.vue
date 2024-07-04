@@ -44,27 +44,12 @@ import {
         </CCol>
         <CCol>
           <CRow class="mt-3">
-            <!-- <CCol xs="6">
-              <CCollapse :visible="visibleA">
-                <CCard>
-                  <CCardBody>
-                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry
-                    richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson
-                    cred nesciunt sapiente ea proident.
-                  </CCardBody>
-                </CCard>
-              </CCollapse>
-            </CCol> -->
             <CCol xs="12">
               <CCollapse :visible="visibleB">
                 <CCard style="margin-right: 10px;">
                   <CCardTitle>Edycja preferencji</CCardTitle>
                   <CCardBody>
                     <CForm class="px-4 py-4">
-                      <!-- <div class="mb-3">
-                        <CFormLabel for="exampleDropdownFormEmail1">Email address</CFormLabel>
-                        <CFormInput type="email" id="exampleDropdownFormEmail1" placeholder="email@example.com" />
-                      </div> -->
                       <div class="mb-3">
                         <CFormLabel>Miasto</CFormLabel>
                         <Multiselect v-model="selectedOptionsC" :options="optionsC" :multiple="true" label="name"
@@ -80,36 +65,8 @@ import {
                         <Multiselect v-model="selectedOptionsL" :options="optionsL" :multiple="false" label="name"
                           track-by="id" />
                       </div>
-                      <!-- <label>
-                      Miasto:
-                      <input type="text" v-model="editableData.city" />
-                    </label>
-                    <label>
-                      Preferencje dotyczące przedmiotów:
-                      <input type="text" v-model="editableData.subjectPreferences" />
-                    </label>
-                    <label>
-                      Poziom:
-                      <input type="text" v-model="editableData.level" />
-                    </label> -->
-                      <!-- <div class="mb-3">
-                        <CFormCheck id="dropdownCheck" label="Remember me" />
-                      </div> -->
                       <CButton color="primary" type="submit" @click="saveChanges">Zapisz zmiany</CButton>
                     </CForm>
-                    <!-- <label>
-                      Miasto:
-                      <input type="text" v-model="editableData.city" />
-                    </label>
-                    <label>
-                      Preferencje dotyczące przedmiotów:
-                      <input type="text" v-model="editableData.subjectPreferences" />
-                    </label>
-                    <label>
-                      Poziom:
-                      <input type="text" v-model="editableData.level" />
-                    </label>
-                    <button @click="saveChanges">Zapisz zmiany</button> -->
                   </CCardBody>
                 </CCard>
               </CCollapse>
@@ -159,11 +116,11 @@ export default {
       ], optionsL: [
         { name: 'Studia(rozszerzenie)', id: 1 }
       ],
-      visitsDb: []
+      // visitsDb: []
     };
   },
   mounted() {
-    this.getVisits();
+    // this.getVisits();
   },
   computed: {
     userData() {
@@ -182,13 +139,23 @@ export default {
     saveChanges() {
       this.$store.commit('updateUser', this.editableData);
     },
-    async getVisits() {
-      var UID = this.$store.state.user.id;
-      const q = query(collection(db, "visit"), where("clientId", "==", UID));
+    async getVisits() { // TODEL
+      const visitdsIdb = await getIdbData(dbPromiseVisits);
+      
+      if (visitdsIdb.length > 0){
+        this.visitsDb = visitdsIdb;
+      } else {
+        var UID = this.$store.state.user.id;
+        const q = query(collection(db, "visit"), where("clientId", "==", UID));
+        const data = [];
 
-      const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
-        this.visitsDb.push(doc.data())
-      })
+        const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
+          data.push(doc.data());
+        });
+        this.visitsDb = data;
+        putIdbData(dbPromiseVisits, data);
+
+      }
     }
   }
 };

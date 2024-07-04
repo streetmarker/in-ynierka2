@@ -46,7 +46,7 @@ import {
 <script>
 import store from "../store/index";
 import { doc, getDoc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
-import { db } from "../firebaseInitializer";
+import { db, dbPromiseVisits, getIdbData, putIdbData } from "../firebaseInitializer";
 
 import { pl } from 'date-fns/locale'
 import { format } from 'date-fns';
@@ -95,57 +95,73 @@ export default {
             var role = this.$store.state.role.type;
 
             if (role == 'T') {
-                const q = query(collection(db, "visit"), where("details.userId", "==", TID));
-                const querySnapshotVisit = await getDocs(q);
+                const visitdsIdb = await getIdbData(dbPromiseVisits);
                 let tmpList = [];
 
-                for (const doc of querySnapshotVisit.docs) {
-                    let data = doc.data();
-                    console.log(doc.id);
-                    try {
-                        console.log('visit',data);
-                        const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
-                        const querySnapshotPayment = await getDocs(p);
-                        console.log('payment', querySnapshotPayment.docs[0]?.data());
-                        data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
-                    } catch (error) {
-                        data.visitStatus = '-';
-                    }
-                    tmpList.push(data);
-                }
-                tmpList.sort((a, b) => b.visitDate - a.visitDate);
-                tmpList.forEach((el) => {
-                    el.visitDate = this.formatDate(el.visitDate)
-                })
-                store.commit('setUserVisits', tmpList);
+                if (visitdsIdb.length > 0) {
+                    visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                    store.commit('setUserVisits', visitdsIdb);
+                } else {
 
+                    const q = query(collection(db, "visit"), where("details.userId", "==", TID));
+                    const querySnapshotVisit = await getDocs(q);
+
+                    for (const doc of querySnapshotVisit.docs) {
+                        let data = doc.data();
+                        console.log(doc.id);
+                        try {
+                            console.log('visit', data);
+                            const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
+                            const querySnapshotPayment = await getDocs(p);
+                            console.log('payment', querySnapshotPayment.docs[0]?.data());
+                            data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
+                        } catch (error) {
+                            data.visitStatus = '-';
+                        }
+                        tmpList.push(data);
+                    }
+                    tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                    tmpList.forEach((el) => {
+                        el.visitDate = this.formatDate(el.visitDate)
+                    })
+                    store.commit('setUserVisits', tmpList);
+
+                }
             } else {
-                const q = query(collection(db, "visit"), where("clientId", "==", UID));
-                const querySnapshotVisit = await getDocs(q);
+                const visitdsIdb = await getIdbData(dbPromiseVisits);
                 let tmpList = [];
 
-                for (const doc of querySnapshotVisit.docs) {
-                    let data = doc.data();
-                    console.log(doc.id);
-                    try {
-                        console.log('visit',data);
-                        const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
-                        const querySnapshotPayment = await getDocs(p);
-                        console.log('payment', querySnapshotPayment.docs[0]?.data());
-                        data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
-                    } catch (error) {
-                        data.visitStatus = '-';
-                    }
-                    tmpList.push(data);
-                }
-                
-                tmpList.sort((a, b) => b.visitDate - a.visitDate);
-                tmpList.forEach((el) => {
-                    el.visitDate = this.formatDate(el.visitDate)
-                })
-                store.commit('setUserVisits', tmpList);
+                if (visitdsIdb.length > 0) {
+                    visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                    store.commit('setUserVisits', visitdsIdb);
+                } else {
+                    const q = query(collection(db, "visit"), where("clientId", "==", UID));
+                    const querySnapshotVisit = await getDocs(q);
 
+                    for (const doc of querySnapshotVisit.docs) {
+                        let data = doc.data();
+                        try {
+                            const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
+                            const querySnapshotPayment = await getDocs(p);
+                            data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
+                        } catch (error) {
+                            data.visitStatus = '-';
+                        }
+                        tmpList.push(data);
+                    }
+
+                    tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                    tmpList.forEach((el) => {
+                        el.visitDate = this.formatDate(el.visitDate)
+                    })
+
+                    putIdbData(dbPromiseVisits, tmpList);
+                    store.commit('setUserVisits', tmpList);
+
+                }
             }
+
+
         },
         formatDate(date) {
             const timestamp = new Timestamp(date.seconds, date.nanoseconds);

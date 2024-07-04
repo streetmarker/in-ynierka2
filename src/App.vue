@@ -117,15 +117,17 @@ watch(role, (newRole, oldRole) => {
       </CContainer>
     </CNavbar>
   </div>
-
+    
     <div class="main-content container">
       <div id="features" class="row text-center">
         <div class="col">
-          <!-- <div style="opacity: 0%;" id="firebaseui-auth-container"></div> -->
-          <router-view />
+          <div class="bgcolor">
+            <router-view />
+          </div>
         </div>
       </div>
     </div>
+    
     <!-- TODO -->
     <!-- <div v-if="process.env.VUE_APP_NODE_ENV === 'development'">
       {{ tokenIn }}
@@ -254,7 +256,8 @@ body {
   text-align: center;
   /* color: #2c3e50; */
   /* background-color: #f0f0f0; */
-  background-image: radial-gradient(circle, #f0f0f0 0%, #61c75e 140%);
+  /* background-image: radial-gradient(circle, #f0f0f0 0%, #61c75e 140%); */
+  background: url('../public/bg.jpg') ;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -271,7 +274,19 @@ body {
   text-decoration: none;
 
 }
+.bgcolor {
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+}
 
+/* .main-content > * {
+  background-color: rgba(255, 255, 255, 1);
+  padding: 20px;
+} */
+a {
+color:#fff;
+}
 nav {
   padding: 30px;
 }

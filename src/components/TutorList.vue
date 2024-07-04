@@ -32,7 +32,7 @@ import {
 import { ref, computed, onMounted } from 'vue';
 import Calendar from "./Calendar.vue";
 import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
-import { db, storage, perf, analytics } from "../firebaseInitializer";
+import { db, storage, perf, analytics, dbPromiseTutors, getIdbData, putIdbData, isUpdated } from "../firebaseInitializer";
 import {
   collection,
   getDocs,
@@ -109,9 +109,9 @@ checkPerfInitialization();
 
 const getTutors = async () => {
   tutors.value = [];
-  const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
-  querySnapshot.forEach(async (doc) => {
-    // console.log(`${doc.id} => ${doc.data()}`);
+  const tutorsIdb = await getIdbData(dbPromiseTutors);
+  // obsługa danych
+  const processDoc = async (doc) => {
     let data = doc.data();
 
     const today = new Date();
@@ -121,8 +121,35 @@ const getTutors = async () => {
 
     let img = await getProfileImg(data.userId);
     let formatData = { id: doc.id, data: data, img: img };
+
     tutors.value.push(formatData);
-  });
+    return formatData;
+  };
+  // pobranie z zapisem do cache
+  const processAllDocs = async () => {
+    const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
+    const data = [];
+    const promises = [];
+
+    querySnapshot.forEach((doc) => {
+      promises.push(processDoc(doc).then((formatData) => data.push(formatData)));
+    });
+
+    await Promise.all(promises);
+
+    if (data.length > 0) {
+      putIdbData(dbPromiseTutors, data);
+    }
+  };
+  // pobieramy z firestore pod warunkiem, domyślnie cache
+  if (tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb)) {
+    tutorsIdb.forEach(el => { // TODO obsługa updatu listy i refactor
+      tutors.value.push(el);
+    });
+  } else {
+    processAllDocs();
+  }
+
   // perf
   try {
     t.start();
@@ -188,9 +215,9 @@ const handleModalOpened = () => {
     const executionTime = endTime - startTime;
     const logData = { name: 'choose_tutor_time', value: Number(executionTime.toFixed(2)) }
     logEvent(analytics, logData.name, { value: logData.value });
-    
+
   } catch (error) {
-    
+
   }
 
 };
@@ -202,7 +229,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <CNavbar expand="lg" style="background-color: rgba(255, 255, 255, 0);">
+    <CNavbar expand="lg" color-scheme="dark" class="bg-light" style="padding: 3px; border-radius: 10px;">
       <CNavbarBrand>Filtry</CNavbarBrand>
       <CContainer fluid>
         <CNavbarNav>
@@ -232,31 +259,31 @@ onMounted(() => {
         </CNavbarNav>
       </CContainer>
     </CNavbar>
-    
+
     <CContainer>
       <!-- <CRow> -->
-        <!-- <CCol class="align-self-center"> -->
-          <div v-if="filteredTutors.length > 0">
-            <ul>
-              <li v-for="(tutor, index) in filteredTutors" :key="index">
-                <CCard style="">
-                  <CImage style="position: absolute" width="100" height="100" :src="tutor.img" />
-                  <CCardBody>
-                    <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
-                    <CCardText>Wiek: {{ tutor.data.age }}<br>
-                      Przedmiot:{{ tutor.data.subject }}<br>
-                      Poziom: {{ tutor.data.level }} <br>
-                      Stawka (h) {{ tutor.data.hourRate }} <br>
-                      Bio: {{ tutor.data.description }} <br>
-                      Ocena ⭐⭐⭐⭐<br>
-                      🗺️ ul. Testowa {{ Math.floor(tutor.data.hourRate * 1.33) }} Warszawa<br></CCardText>
-                    <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
-                  </CCardBody>
-                </CCard>
-              </li>
-            </ul>
-          </div>
-        <!-- </CCol> -->
+      <!-- <CCol class="align-self-center"> -->
+      <div v-if="filteredTutors.length > 0">
+        <ul>
+          <li v-for="(tutor, index) in filteredTutors" :key="index">
+            <CCard style="">
+              <CImage style="position: absolute" width="100" height="100" :src="tutor.img" />
+              <CCardBody>
+                <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
+                <CCardText>Wiek: {{ tutor.data.age }}<br>
+                  Przedmiot:{{ tutor.data.subject }}<br>
+                  Poziom: {{ tutor.data.level }} <br>
+                  Stawka (h) {{ tutor.data.hourRate }} <br>
+                  Bio: {{ tutor.data.description }} <br>
+                  Ocena ⭐⭐⭐⭐<br>
+                  🗺️ ul. Testowa {{ Math.floor(tutor.data.hourRate * 1.33) }} Warszawa<br></CCardText>
+                <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
+              </CCardBody>
+            </CCard>
+          </li>
+        </ul>
+      </div>
+      <!-- </CCol> -->
       <!-- </CRow> -->
     </CContainer>
 
@@ -276,7 +303,7 @@ onMounted(() => {
         Poziom: {{ selectedTutor.data.level }} <br>
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
-        <MakeVisitDialog btnText="Umów"  :tutor="selectedTutor" @open="handleModalOpened" />
+        <MakeVisitDialog btnText="Umów" :tutor="selectedTutor" @open="handleModalOpened" />
         <Calendar />
       </COffcanvasBody>
     </COffcanvas>
