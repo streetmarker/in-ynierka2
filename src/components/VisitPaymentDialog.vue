@@ -11,7 +11,7 @@ import {
 </script>
 <template>
   <div>
-    <CButton color="primary" @click="() => { initPaypal() }">Umów wizytę</CButton>
+    <CButton color="primary" @click="() => { initPaypal() }">Opłać wizytę</CButton>
     <CModal :visible="visibleScrollingLongContentDemo" @close="() => { visibleScrollingLongContentDemo = false }"
       aria-labelledby="ScrollingLongContentExampleLabel">
       <CModalHeader>
@@ -28,7 +28,6 @@ import {
         Do zapłaty: {{ tutor.data.hourRate }} zł<br><br>
         <div id="paypal-btn"></div>
       </CModalBody>
-      {{visitId}}
     </CModal>
   </div>
 </template>
@@ -39,7 +38,7 @@ import {
 import { loadScript } from "@paypal/paypal-js";
 // import TutorList from "@/components/TutorList.vue";
 import { collection, addDoc } from "firebase/firestore";
-import { db} from "../firebaseInitializer";
+import { db, deleteIdbData, dbPromiseVisits} from "../firebaseInitializer";
 
 export default {
   name: "PaypalView",
@@ -130,6 +129,7 @@ export default {
           transactionStatus: details.status,
           details: details
         });
+        deleteIdbData(dbPromiseVisits); // TODO przejściowe rozwiązanie
 
         const event = new CustomEvent('trigger-toast', {
           detail: { title:'Opłacono wizytę', content:'', photoUrl:'https://cdn-icons-png.flaticon.com/512/4436/4436481.png', hide: true  }
@@ -139,7 +139,7 @@ export default {
         const event = new CustomEvent('trigger-toast', {
           detail: { title:'Wystąpił problem z płatnością', content:'Prosimy o kontakt z administratorem', hide: true }
         });
-        console.log(error);
+        window.dispatchEvent(event);
       }
       this.visibleScrollingLongContentDemo = false;
       this.$emit('paid');

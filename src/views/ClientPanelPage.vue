@@ -90,8 +90,8 @@ import {
 <script>
 import VisitsList from "@/components/VisitsList.vue";
 import Multiselect from 'vue-multiselect';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebaseInitializer";
+// import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+// import { db } from "../firebaseInitializer";
 
 export default {
   name: "ClientPanel",
@@ -139,24 +139,24 @@ export default {
     saveChanges() {
       this.$store.commit('updateUser', this.editableData);
     },
-    async getVisits() { // TODEL
-      const visitdsIdb = await getIdbData(dbPromiseVisits);
+    // async getVisits() { // TODEL
+    //   const visitdsIdb = await getIdbData(dbPromiseVisits);
       
-      if (visitdsIdb.length > 0){
-        this.visitsDb = visitdsIdb;
-      } else {
-        var UID = this.$store.state.user.id;
-        const q = query(collection(db, "visit"), where("clientId", "==", UID));
-        const data = [];
+    //   if (visitdsIdb.length > 0){
+    //     this.visitsDb = visitdsIdb;
+    //   } else {
+    //     var UID = this.$store.state.user.id;
+    //     const q = query(collection(db, "visit"), where("clientId", "==", UID));
+    //     const data = [];
 
-        const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
-          data.push(doc.data());
-        });
-        this.visitsDb = data;
-        putIdbData(dbPromiseVisits, data);
+    //     const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
+    //       data.push(doc.data());
+    //     });
+    //     this.visitsDb = data;
+    //     putIdbData(dbPromiseVisits, data);
 
-      }
-    }
+    //   }
+    // }
   }
 };
 </script>

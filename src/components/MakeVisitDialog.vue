@@ -49,7 +49,11 @@ export default {
     btnText: {
       type: String,
       required: true
-    }
+    },
+    // selectedDate: { // TODO store czy prop
+    //   type: Date,
+    //   required: true
+    // }
   },
   data() {
     return {

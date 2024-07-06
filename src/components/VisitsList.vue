@@ -7,7 +7,8 @@ import {
     CTableHeaderCell,
     CTableDataCell,
     CTableHead,
-    CTableRow
+    CTableRow,
+    CButton
 } from "@coreui/vue";
 </script>
 
@@ -35,7 +36,11 @@ import {
                     <CTableDataCell>{{ visit.visitDate }}</CTableDataCell>
                     <CTableDataCell>{{ visit.details.hourRate }}</CTableDataCell>
                     <CTableDataCell>1</CTableDataCell>
-                    <CTableDataCell>{{ visit.visitStatus }}</CTableDataCell>
+                    <CTableDataCell v-if="visit.visitStatus == '-' && $store.state.role.type != 'T'">
+                        <VisitPaymentDialog :tutor="visit.tutor" :visitId="visit.docId"
+                            :visitDate="visit.originalVisitDate.toDate()" />
+                    </CTableDataCell>
+                    <CTableDataCell v-else>{{ visit.visitStatus }}</CTableDataCell>
                 </CTableRow>
             </CTableBody>
         </CTable>
@@ -45,8 +50,11 @@ import {
 
 <script>
 import store from "../store/index";
+import router from '../router/index'
 import { doc, getDoc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
-import { db, dbPromiseVisits, getIdbData, putIdbData } from "../firebaseInitializer";
+import { db, dbPromiseVisits, getIdbData, putIdbData, isUpdated, saveErrorInDb } from "../firebaseInitializer";
+import VisitPaymentDialog from '@/components/VisitPaymentDialog.vue'
+import Loader from '../../public/loader'
 
 import { pl } from 'date-fns/locale'
 import { format } from 'date-fns';
@@ -56,10 +64,10 @@ export default {
     name: "VisitsList",
     data() {
         return {
-            // visitsDb: []
+            //
         };
     },
-    mounted() {
+    onMounted() {
         this.getVisits();
     },
     computed: {
@@ -70,98 +78,93 @@ export default {
             return this.$store.state.userVisits;
         }
     },
-    // watch: {
-    //     userData: {
-    //         immediate: true,
-    //         handler(newValue) {
-    //             this.editableData = { ...newValue };
-    //         }
-    //     }
-    // },
-    // watch: {
-    //     userData(newValue, oldValue) {
-    //         // Kod, który ma się wykonać przy zmianie userData
-    //         console.log('userData zmieniło się z', oldValue, 'na', newValue);
-    //     },
-    //     userVisits(newValue, oldValue) {
-    //         // Kod, który ma się wykonać przy zmianie userVisits
-    //         console.log('userVisits zmieniło się z', oldValue, 'na', newValue);
-    //     }
-    // },
     methods: {
         async getVisits() {
-            var UID = this.$store.state.user.id;
-            var TID = this.$store.state.tutor.userId;
-            var role = this.$store.state.role.type;
+            Loader.open();
+            try {
+                var UID = this.$store.state.user.id;
+                var TID = this.$store.state.tutor.userId;
+                var role = this.$store.state.role.type;
 
-            if (role == 'T') {
-                const visitdsIdb = await getIdbData(dbPromiseVisits);
-                let tmpList = [];
+                if (role == 'T') {
+                    const visitdsIdb = await getIdbData(dbPromiseVisits);
+                    let tmpList = [];
 
-                if (visitdsIdb.length > 0) {
-                    visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
-                    store.commit('setUserVisits', visitdsIdb);
-                } else {
+                    if (visitdsIdb.length > 0 && !isUpdated(dbPromiseVisits, visitdsIdb)) {
+                        visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                        store.commit('setUserVisits', visitdsIdb);
+                    } else {
 
-                    const q = query(collection(db, "visit"), where("details.userId", "==", TID));
-                    const querySnapshotVisit = await getDocs(q);
+                        const q = query(collection(db, "visit"), where("details.userId", "==", TID));
+                        const querySnapshotVisit = await getDocs(q);
 
-                    for (const doc of querySnapshotVisit.docs) {
-                        let data = doc.data();
-                        console.log(doc.id);
-                        try {
+                        for (const docIn of querySnapshotVisit.docs) {
+                            let data = docIn.data();
+                            data.docId = docIn.id; // chyba tylko u C
+
                             console.log('visit', data);
-                            const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
+                            const p = query(collection(db, "payment"), where("visitId", "==", docIn.id));
                             const querySnapshotPayment = await getDocs(p);
                             console.log('payment', querySnapshotPayment.docs[0]?.data());
                             data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
-                        } catch (error) {
-                            data.visitStatus = '-';
+
+                            tmpList.push(data);
                         }
-                        tmpList.push(data);
+                        tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                        tmpList.forEach((el) => {
+                            el.visitDate = this.formatDate(el.visitDate)
+                        })
+                        store.commit('setUserVisits', tmpList);
+
                     }
-                    tmpList.sort((a, b) => b.visitDate - a.visitDate);
-                    tmpList.forEach((el) => {
-                        el.visitDate = this.formatDate(el.visitDate)
-                    })
-                    store.commit('setUserVisits', tmpList);
-
-                }
-            } else {
-                const visitdsIdb = await getIdbData(dbPromiseVisits);
-                let tmpList = [];
-
-                if (visitdsIdb.length > 0) {
-                    visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
-                    store.commit('setUserVisits', visitdsIdb);
                 } else {
-                    const q = query(collection(db, "visit"), where("clientId", "==", UID));
-                    const querySnapshotVisit = await getDocs(q);
+                    const visitdsIdb = await getIdbData(dbPromiseVisits);
+                    let tmpList = [];
 
-                    for (const doc of querySnapshotVisit.docs) {
-                        let data = doc.data();
-                        try {
-                            const p = query(collection(db, "payment"), where("visitId", "==", doc.id));
+                    if (visitdsIdb.length > 0 && !isUpdated(dbPromiseVisits, visitdsIdb)) {
+                        visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                        store.commit('setUserVisits', visitdsIdb);
+                    } else {
+                        const q = query(collection(db, "visit"), where("clientId", "==", UID));
+                        // const q = query(collection(db, "visit"), where("clientId", "==", TID));
+
+                        const querySnapshotVisit = await getDocs(q);
+
+                        for (const docIn of querySnapshotVisit.docs) {
+                            let data = docIn.data();
+                            data.docId = docIn.id;
+
+                            const p = query(collection(db, "payment"), where("visitId", "==", docIn.id));
                             const querySnapshotPayment = await getDocs(p);
                             data.visitStatus = querySnapshotPayment.docs[0]?.data()?.transactionStatus || '-';
-                        } catch (error) {
-                            data.visitStatus = '-';
+
+                            if (data.visitStatus == '-') {
+                                const docRef = doc(db, "tutor", data.tutorId); // różnica z warunkiem T
+                                const docSnap = await getDoc(docRef);
+                                data.tutor = {};
+                                data.tutor.id = docSnap.id;
+                                data.tutor.data = docSnap.data();
+                            }
+
+                            tmpList.push(data);
                         }
-                        tmpList.push(data);
+
+                        tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                        tmpList.forEach((el) => {
+                            el.originalVisitDate = el.visitDate;
+                            el.visitDate = this.formatDate(el.visitDate)
+                        })
+
+                        putIdbData(dbPromiseVisits, tmpList);
+                        store.commit('setUserVisits', tmpList);
+
                     }
-
-                    tmpList.sort((a, b) => b.visitDate - a.visitDate);
-                    tmpList.forEach((el) => {
-                        el.visitDate = this.formatDate(el.visitDate)
-                    })
-
-                    putIdbData(dbPromiseVisits, tmpList);
-                    store.commit('setUserVisits', tmpList);
-
                 }
+            } catch (e) {
+                saveErrorInDb(e, router.currentRoute.value.fullPath, this.$options.name, 'getVisits');
             }
 
-
+            Loader.close();
         },
         formatDate(date) {
             const timestamp = new Timestamp(date.seconds, date.nanoseconds);

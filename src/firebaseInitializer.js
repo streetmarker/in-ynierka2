@@ -6,7 +6,7 @@ import firebase from 'firebase/compat/app';
 import * as firebaseui from 'firebaseui'
 import 'firebaseui/dist/firebaseui.css'
 import store from './store/index';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, addDoc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Loader from '../public/loader'
 import * as idb from './idb'
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
@@ -87,7 +87,7 @@ export const isUpdated = async (dbPromise, idbData) => { // TODO coś mniej poda
   // querySnapshot.forEach((doc) => {
   //   res.push(doc.data())
   // });
-
+// console.log('len', querySnapshot.docs.length != idbData.length,  querySnapshot.docs.length, idbData.length);
   if (querySnapshot.docs.length != idbData.length) {
     console.log('isUpdated:update:',dbData);
     return true
@@ -162,6 +162,25 @@ export const token = getToken(messaging, {
   });
 
 t.stop();
+
+export async function saveErrorInDb(stackTrace, router, component, method){
+  const today = new Date();
+  console.info(stackTrace);
+  waitForCurrentUser(() => {
+    var user = {
+      uid: auth.currentUser.uid,
+      displayName: auth.currentUser.displayName
+    }
+    addDoc(collection(db, "error"), {
+      date: today || null,
+      router: router || null,
+      component: component || null,
+      method: method || null,
+      user: user || null,
+      stack: stackTrace ? String(stackTrace) : null
+    });    
+  }, 3000); // Max czas oczekiwania: 3 sekundy
+}
 
 async function getTestDoc() {
   try {

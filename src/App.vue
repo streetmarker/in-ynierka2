@@ -69,55 +69,56 @@ watch(role, (newRole, oldRole) => {
         <CNavbarBrand href="#" class="bg-dark">
           <!-- <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" /> -->
           <CNavbarBrand><router-link style="text-decoration: none" to="/">
-            <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor App</router-link></CNavbarBrand>
+              <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor
+              App</router-link></CNavbarBrand>
         </CNavbarBrand>
         <CNavbarText></CNavbarText>
       </CContainer>
     </CNavbar>
     <div class="bg-dark">
-    <CNavbar style="border-bottom: 2px solid grey;" lor-scheme="dark" class="bg-dark">
-      <CContainer fluid>
-        <div style="width: 30%;"></div>
-        <div v-if="clientAccess">
-          <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/panel">Panel
-              klienta</router-link></CNavbarBrand>
+      <CNavbar style="border-bottom: 2px solid grey;" lor-scheme="dark" class="bg-dark">
+        <CContainer fluid>
+          <div style="width: 30%;"></div>
+          <div v-if="clientAccess">
+            <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/panel">Panel
+                klienta</router-link></CNavbarBrand>
 
-          <!-- <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/visit">Umów
+            <!-- <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/visit">Umów
               wizytę</router-link></CNavbarBrand> -->
-              
-          <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/tutor-list">Lista
-              korepetytorów</router-link>
-          </CNavbarBrand>
 
-        </div>
-        <!--  -->
-        <div v-if="tutorAccess">
-          <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-manager">Zarządzanie
-              wizytami</router-link>
-          </CNavbarBrand>
-          <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-admin">Zarządzanie
-              ofertą</router-link>
-          </CNavbarBrand>
-        </div>
-        <!--  -->
-        <div v-if="adminAccess">
-          <CNavbarBrand><router-link style="text-decoration: none" v-if="adminAccess" to="/admin">Administracja
-              aplikacją</router-link></CNavbarBrand>
-        </div>
-        <div style="width: 30%;">
-          <CButton id="sign-in" class="bg-dark" style="text-decoration: none;" @click="() => {
-            visible = !visible;
-          }
-            "><u>Logowanie / Rejestracja</u></CButton>
-          <img style="width: 3vh; border: 1px solid transparent;" :src="$store.state.user.photo" />
-          <b><i>{{ $store.state.user.fullName }}</i></b>
-          <CButton id="sign-out" style="text-decoration: none;" class="bg-dark"> <u>Wyloguj się</u></CButton>
-        </div>
-        <!-- <CNavbarText></CNavbarText> -->
-      </CContainer>
-    </CNavbar>
-  </div>
-    
+            <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/tutor-list">Lista
+                korepetytorów</router-link>
+            </CNavbarBrand>
+
+          </div>
+          <!--  -->
+          <div v-if="tutorAccess">
+            <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-manager">Zarządzanie
+                wizytami</router-link>
+            </CNavbarBrand>
+            <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-admin">Zarządzanie
+                ofertą</router-link>
+            </CNavbarBrand>
+          </div>
+          <!--  -->
+          <div v-if="adminAccess">
+            <CNavbarBrand><router-link style="text-decoration: none" v-if="adminAccess" to="/admin">Administracja
+                aplikacją</router-link></CNavbarBrand>
+          </div>
+          <div style="width: 30%;">
+            <CButton id="sign-in" class="bg-dark" style="text-decoration: none;" @click="() => {
+              visible = !visible;
+            }
+              "><u>Logowanie / Rejestracja</u></CButton>
+            <img style="width: 3vh; border: 1px solid transparent;" :src="$store.state.user.photo" />
+            <b><i>{{ $store.state.user.fullName }}</i></b>
+            <CButton id="sign-out" style="text-decoration: none;" class="bg-dark"> <u>Wyloguj się</u></CButton>
+          </div>
+          <!-- <CNavbarText></CNavbarText> -->
+        </CContainer>
+      </CNavbar>
+    </div>
+
     <div class="main-content container">
       <div id="features" class="row text-center">
         <div class="col">
@@ -127,7 +128,7 @@ watch(role, (newRole, oldRole) => {
         </div>
       </div>
     </div>
-    
+
     <!-- TODO -->
     <!-- <div v-if="process.env.VUE_APP_NODE_ENV === 'development'">
       {{ tokenIn }}
@@ -145,7 +146,7 @@ watch(role, (newRole, oldRole) => {
 </template>
 
 <script>
-import { db, auth, token } from "./firebaseInitializer";
+import { db, auth, token, saveErrorInDb } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
 import ToastMsg from './components/ToastMsg.vue'
@@ -257,7 +258,7 @@ body {
   /* color: #2c3e50; */
   /* background-color: #f0f0f0; */
   /* background-image: radial-gradient(circle, #f0f0f0 0%, #61c75e 140%); */
-  background: url('../public/bg.jpg') ;
+  background: url('../public/bg.svg');
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -274,6 +275,7 @@ body {
   text-decoration: none;
 
 }
+
 .bgcolor {
   color: #fff;
   background-color: rgba(0, 0, 0, 0.8);
@@ -285,8 +287,9 @@ body {
   padding: 20px;
 } */
 a {
-color:#fff;
+  color: #fff;
 }
+
 nav {
   padding: 30px;
 }
@@ -328,6 +331,7 @@ nav a.router-link-exact-active {
   justify-content: center;
   /* Wyśrodkowuje zawartość w poziomie */
 }
+
 #fire_app_check_\[DEFAULT\] {
   display: initial !important
 }

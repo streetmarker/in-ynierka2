@@ -29,20 +29,72 @@ import {
   CRow,
   CCol
 } from "@coreui/vue";
-import { ref, computed, onMounted } from 'vue';
-import Calendar from "./Calendar.vue";
+import store from '../store/index';
+import { ref, computed, onMounted, watch } from 'vue';
+// import SimpleCalendar from "./SimpleCalendar.vue";
 import MakeVisitDialog from './MakeVisitDialog.vue'; // załóżmy, że taka jest nazwa twojego komponentu dialogowego
 import { db, storage, perf, analytics, dbPromiseTutors, getIdbData, putIdbData, isUpdated } from "../firebaseInitializer";
 import {
   collection,
   getDocs,
+  query, where, Timestamp
 } from "firebase/firestore";
 import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
 import { trace } from "firebase/performance";
 import { logEvent } from "firebase/analytics";
+import { pl } from 'date-fns/locale'
+import { format } from 'date-fns';
 
 let visible = ref(true)
 const tutors = ref([]);
+var tutorVisits = ref([]);
+let date = ref(new Date());
+var today = new Date();
+
+const visitsCal = ref([
+  {
+    date: today,
+    color: 'green',
+    description: '14:00-15:00 Testowa wizyta'
+  },
+  {
+    date: today,
+    color: 'green',
+    description: '16:00-17:00 Testowa wizyta'
+  }
+])
+var attrs = computed(() => [
+  // ...visitsCal.value.map(visit => ({
+  //   dates: visit.date,
+  //   dot: {
+  //     color: visit.color,
+  //     // ...(visit.isComplete && { class: 'opacity-75' }),
+  //   },
+  //   // popover: {
+  //   //   label: visit.description,
+  //   // },
+  //   popover: true,
+  //   customData: visit,
+  // })),
+  ...tutorVisits.value.map(visit => ({
+    dates: today,
+    dot: {
+      color: 'green',
+      // ...(visit.isComplete && { class: 'opacity-75' }),
+    },
+    // popover: {
+    //   label: visit.description,
+    // },
+    popover: true,
+    customData: visit,
+  })),
+]);
+const rules = ref({
+  // hours: 0,
+  minutes: 0,
+  seconds: 0,
+  milliseconds: 0,
+});
 const selectedTutor = ref({
   id: '',
   data: {
@@ -141,6 +193,8 @@ const getTutors = async () => {
       putIdbData(dbPromiseTutors, data);
     }
   };
+  // console.log('len met', tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb),  tutorsIdb.length, !isUpdated(dbPromiseTutors, tutorsIdb));
+
   // pobieramy z firestore pod warunkiem, domyślnie cache
   if (tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb)) {
     tutorsIdb.forEach(el => { // TODO obsługa updatu listy i refactor
@@ -224,7 +278,35 @@ const handleModalOpened = () => {
 
 onMounted(() => {
   getTutors();
+  store.commit('setTmpVisitDate', date);
 });
+
+watch(date, (newDate, oldDate) => {
+  // console.log("tmpdate WATCH");
+  // newDate.setMinutes(0);
+  // this.selectedDate = date;
+  // this.formattedDate = date.toLocaleString();
+  store.commit('setTmpVisitDate', newDate);
+});
+watch(selectedTutor, async (newVal, oldVal) => {
+  const q = query(collection(db, "visit"), where("tutorId", "==", newVal.id));
+  console.log('tutotid', newVal.id);
+  const querySnapshotVisit = await getDocs(q);
+  let arr = [];
+  querySnapshotVisit.docs.forEach(element => {
+    let e = element.data();
+    e.visitDate = formatDate(e.visitDate)
+    arr.push(e);
+  });
+  tutorVisits.value = arr;
+  console.log('selectedTutor', tutorVisits);
+
+  function formatDate(date) {
+    const timestamp = new Timestamp(date.seconds, date.nanoseconds);
+    var tmp = format(timestamp.toDate(), 'Pp', { locale: pl });
+    return tmp
+  }
+})
 </script>
 
 <template>
@@ -304,7 +386,30 @@ onMounted(() => {
         Stawka (h) {{ selectedTutor.data.hourRate }} <br>
         Bio: {{ selectedTutor.data.description }}<br>
         <MakeVisitDialog btnText="Umów" :tutor="selectedTutor" @open="handleModalOpened" />
-        <Calendar />
+        <br>
+        <!-- <SimpleCalendar /> -->
+        Kalendarz dostępności
+        <br>
+        <VCalendar :attributes="attrs">
+          <template #day-popover="{ dayTitle }">
+            <div class="px-2">
+              <div class="text-xs text-gray-700 dark:text-gray-300 font-semibold text-center">
+                Wizyty danego dnia:
+                <br>
+              </div>
+              <ul>
+                <li v-for="{ key, customData } in attrs" :key="key"
+                  class="block text-xs text-gray-700 dark:text-gray-300 bg-red-100">
+                  {{ customData.visitDate }}
+                </li>
+              </ul>
+            </div>
+          </template>
+        </VCalendar>
+        <br>
+        Wybrana data: {{ date }}
+        <br>
+        <VDatePicker v-model="date" :rules="rules" mode="dateTime" is-required />
       </COffcanvasBody>
     </COffcanvas>
   </div>
