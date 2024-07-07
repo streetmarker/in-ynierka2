@@ -67,7 +67,7 @@ export default {
             //
         };
     },
-    onMounted() {
+    mounted() {
         this.getVisits();
     },
     computed: {

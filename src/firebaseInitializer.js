@@ -563,15 +563,15 @@ onMessage(messaging, async (payload) => {
   setTimeout(() => {
     appendMessage(payload);
   }, 5000);
-  let date = new Date().toLocaleString();
-  let data = {
-    recipientId: auth.currentUser.uid,
-    recipientFullName: !!auth.currentUser.displayName ? auth.currentUser.displayName : 'undefined',
-    text: payload.notification.title,
-    status: 'recived',
-    reciveDate: date
-  };
-  setDoc(doc(db, "notification", date), data);
+  // let date = new Date().toLocaleString();
+  // let data = {
+  //   recipientId: auth.currentUser.uid,
+  //   recipientFullName: !!auth.currentUser.displayName ? auth.currentUser.displayName : 'undefined',
+  //   text: payload.notification.title,
+  //   status: 'recived',
+  //   reciveDate: date
+  // };
+  // setDoc(doc(db, "notification", date), data);
 });
 
 function appendMessage(payload) {
@@ -584,3 +584,57 @@ function triggerToastFromExternalJS(title, content, photoUrl) {
   });
   window.dispatchEvent(event);
 }
+
+// These registration tokens come from the client FCM SDKs.
+// const registrationTokens = [
+//   token
+// ];
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// // The topic name can be optionally prefixed with "/topics/".
+// // const topic = 'highScores';
+
+// const message = {
+//   data: {
+//     score: '850',
+//     time: '2:45'
+//   },
+//   topic: topic
+// };
+// const messaging2 = firebase.messaging();
+
+// console.log(messaging2);
+// // Subscribe the devices corresponding to the registration tokens to the
+// // topic.
+// messaging2.subscribeToTopic(registrationTokens, topic)
+//   .then((response) => {
+//     // See the MessagingTopicManagementResponse reference documentation
+//     // for the contents of response.
+//     console.log('Successfully subscribed to topic:', response);
+//   })
+//   .catch((error) => {
+//     console.log('Error subscribing to topic:', error);
+//   });
+
+
+
+// // Send a message to devices subscribed to the provided topic.
+// messaging2.send(message)
+//   .then((response) => {
+//     // Response is a message ID string.
+//     console.log('Successfully sent message:', response);
+//   })
+//   .catch((error) => {
+//     console.log('Error sending message:', error);
+//   });
+
+// // Unsubscribe the devices corresponding to the registration tokens from
+// // the topic.
+// messaging2.unsubscribeFromTopic(registrationTokens, topic)
+//   .then((response) => {
+//     // See the MessagingTopicManagementResponse reference documentation
+//     // for the contents of response.
+//     console.log('Successfully unsubscribed from topic:', response);
+//   })
+//   .catch((error) => {
+//     console.log('Error unsubscribing from topic:', error);
+//   });

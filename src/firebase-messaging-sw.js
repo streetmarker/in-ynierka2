@@ -18,23 +18,14 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(async function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  // setTimeout(() => {
-  //   appendMessage(payload);
-  //   let data = {
-  //     recipientId: auth.currentUser, // TODO change to id
-  //     text: payload.notification.title, // TODO change text only
-  //     status: 'recived'
-  //   };
-  // }, 5000);
-  // await db.collection('notification').doc(new Date()).set(data)
+
   // Customize notification here
-  // const notificationTitle = 'Background Message Title';
-  // const notificationOptions = {
-  //   body: 'Background Message body.',
-  //   icon: '/firebase-logo.png'
-  // };
+  const notificationTitle = payload.data.title;
+  const notificationOptions = {
+    body: payload.data.body,
+    icon: '../assets/logo.png'
+  };
 
-  // self.registration.showNotification(notificationTitle,
-  //   notificationOptions);
+  self.registration.showNotification(notificationTitle,
+    notificationOptions);
 });
-

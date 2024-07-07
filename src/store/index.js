@@ -9,17 +9,7 @@ export default createStore({
       photo: "",
       provider: ""
     },
-    tutor: {
-      // first: "",
-      // last: "",
-      // born: null,
-      // subject: "",
-      // level: "",
-      // userId: "",
-      // description: "",
-      // hourRate: 0,
-      // isActiveTutor: false,
-    },
+    tutor: {},
     role: {
       type: '',
       loggedIn: false

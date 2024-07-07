@@ -196,7 +196,7 @@ const getTutors = async () => {
   // console.log('len met', tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb),  tutorsIdb.length, !isUpdated(dbPromiseTutors, tutorsIdb));
 
   // pobieramy z firestore pod warunkiem, domyślnie cache
-  if (tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb)) {
+  if (tutorsIdb.length > 0 && !isUpdated(dbPromiseTutors, tutorsIdb)) { // TODO zamiast odpytywać db, podczas używania aplikacji zrobić oczekiwanie na update z firebase a tak to tylko na init
     tutorsIdb.forEach(el => { // TODO obsługa updatu listy i refactor
       tutors.value.push(el);
     });
