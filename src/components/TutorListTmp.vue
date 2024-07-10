@@ -5,6 +5,12 @@ import {
   CCardBody,
   CCardTitle,
   CCardText,
+  CButton,
+  COffcanvas,
+  COffcanvasHeader,
+  COffcanvasTitle,
+  CCloseButton,
+  COffcanvasBody,
   CNavbar,
   CContainer,
   CNavbarNav,
@@ -16,9 +22,8 @@ import {
 } from "@coreui/vue";
 import { ref, computed, onMounted, watch } from 'vue';
 import store from '../store/index';
-// import MakeVisitDialog from './MakeVisitDialog.vue';
-import TutorListLeftPanel from './TutorListLeftPanel.vue';
-import { db, storage, perf, analytics, dbPromiseTutors, getIdbData, putIdbData, isUpdated, timeTutor } from "../firebaseInitializer";
+import MakeVisitDialog from './MakeVisitDialog.vue';
+import { db, storage, perf, analytics, dbPromiseTutors, getIdbData, putIdbData, isUpdated } from "../firebaseInitializer";
 import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
 import { trace } from "firebase/performance";
@@ -26,12 +31,29 @@ import { logEvent } from "firebase/analytics";
 import { pl } from 'date-fns/locale';
 import { format } from 'date-fns';
 
-// Inicjalizacja zmiennej, która przechowa referencję do trace
+// Initialize trace variable for performance monitoring
+let t;
 const startTime = performance.now();
 const tutors = ref([]);
-let date = ref(new Date());
-var today = new Date();
+const tutorVisits = ref([]);
+const date = ref(new Date());
+const today = new Date();
+const attrs = computed(() => [
+  ...tutorVisits.value.map(visit => ({
+    dates: today,
+    dot: {
+      color: 'green',
+    },
+    popover: true,
+    customData: visit,
+  })),
+]);
 
+const rules = ref({
+  minutes: 0,
+  seconds: 0,
+  milliseconds: 0,
+});
 
 const selectedTutor = ref({
   id: '',
@@ -48,6 +70,7 @@ const selectedTutor = ref({
   },
   img: ''
 });
+
 const visibleTop = ref(false);
 const subjectFilter = ref('');
 const locationFilter = ref('');
@@ -55,6 +78,7 @@ const priceFilter = ref(null);
 const ratingFilter = ref(null);
 const sortOption = ref('');
 
+// Filtered Tutors Computed Property
 const filteredTutors = computed(() => {
   let result = tutors.value;
 
@@ -78,7 +102,7 @@ const filteredTutors = computed(() => {
   return result;
 });
 
-
+// Function to process tutor document
 const processTutorDoc = async (doc) => {
   const data = doc.data();
   const born = new Date(data.born);
@@ -87,106 +111,84 @@ const processTutorDoc = async (doc) => {
   return { id: doc.id, data, img };
 };
 
+// Function to get tutors
 const getTutors = async () => {
   tutors.value = [];
   const tutorsIdb = await getIdbData(dbPromiseTutors);
 
-  // pobranie z zapisem do cache
   const processAllDocs = async () => {
-    const querySnapshot = await getDocs(collection(db, "tutor")); // TODO warunek isActiveTutor
+    const querySnapshot = await getDocs(collection(db, "tutor"));
     const data = await Promise.all(querySnapshot.docs.map(processTutorDoc));
-    return data
-  }
-    const dbPromiseTutorsIn = await dbPromiseTutors;
+    return data;
+  };
 
-    // pobieramy z firestore pod warunkiem, domyślnie cache
-    if (tutorsIdb.length > 0 && isUpdated(dbPromiseTutorsIn, tutorsIdb)) { // TODO zamiast odpytywać db, podczas używania aplikacji zrobić oczekiwanie na update z firebase a tak to tylko na init
-      tutors.value.push(...tutorsIdb);
-      console.log('dane z cache');
-      // TODO obsługa updatu listy i refactor
-    } else {
-      const tmp = await processAllDocs();
-      tutors.value = tmp;
-      putIdbData(dbPromiseTutors, tmp);
-      console.log('dane z DB');
-    }
-  }
-  // perf
-  try {
-    timeTutor.start();
-  } catch (e) {
-    console.log(e);
-  }
+  const dbPromiseTutorsIn = await dbPromiseTutors;
 
-const getProfileImg = async (uid) => {
-  let spaceRef = firebaseRef(storage, `profile-img/${uid}.jpg`);
-  let defRef = firebaseRef(storage, 'profile-img/default-img.png');
-  try {
-    let url = await getDownloadURL(spaceRef)
-      .then((url) => {
-
-        const xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = (event) => {
-          const blob = xhr.response;
-        };
-        xhr.open('GET', url);
-        xhr.send();
-
-        return url
-      })
-      .catch((error) => {
-        // Handle any errors
-      });
-    return url
-
-  } catch (error) {
-    let url = await getDownloadURL(defRef)
-      .then((url) => {
-
-        const xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = (event) => {
-          const blob = xhr.response;
-        };
-        xhr.open('GET', url);
-        xhr.send();
-
-        return url
-      })
-      .catch((error) => {
-        // Handle any errors
-      });
-    return url
+  if (tutorsIdb.length > 0 && isUpdated(dbPromiseTutorsIn, tutorsIdb)) {
+    tutors.value.push(...tutorsIdb);
+  } else {
+    const tmp = await processAllDocs();
+    tutors.value = tmp;
+    putIdbData(dbPromiseTutors, tmp);
   }
 };
 
+// Function to get profile image
+const getProfileImg = async (uid) => {
+  const defaultUrl = await getDownloadURL(firebaseRef(storage, 'profile-img/default-img.png')).catch(() => '');
+  const userUrl = await getDownloadURL(firebaseRef(storage, `profile-img/${uid}.jpg`)).catch(() => defaultUrl);
+  return userUrl;
+};
+
+// Function to handle tutor details view
 const tutorDetails = (tutor) => {
   selectedTutor.value = tutor;
   visibleTop.value = true;
 };
 
+// Function to handle modal opened event
+const handleModalOpened = () => {
+  try {
+    t.stop();
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+    logEvent(analytics, 'choose_tutor_time', { value: executionTime.toFixed(2) });
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-
-
-// Funkcja do sprawdzania, czy zmienna `perf` została zainicjowana TODO
-// const checkPerfInitialization = () => {
-//   try {
-//     t = trace(perf, "choose_tutor_time");
-//   } catch (e) {
-//     setTimeout(checkPerfInitialization, 100); // Sprawdź ponownie za 100 milisekund
-//   }
-// };
-
+// onMounted Lifecycle Hook
 onMounted(async () => {
   getTutors();
   store.commit('setTmpVisitDate', date);
-  // Wywołanie funkcji sprawdzającej inicjalizację zmiennej `perf`
-  // checkPerfInitialization();
+  try {
+    t = trace(perf, "choose_tutor_time");
+    t.start();
+  } catch (e) {
+    console.error(e);
+  }
 });
 
+// Watcher for date
 watch(date, newDate => store.commit('setTmpVisitDate', newDate));
 
+// Watcher for selected tutor
+watch(selectedTutor, async (newVal) => {
+  const q = query(collection(db, "visit"), where("tutorId", "==", newVal.id));
+  const querySnapshotVisit = await getDocs(q);
+  tutorVisits.value = querySnapshotVisit.docs.map(doc => {
+    const data = doc.data();
+    data.visitDate = formatDate(data.visitDate);
+    return data;
+  });
+});
+
+// Function to format date
+function formatDate(date) {
+  const timestamp = new Timestamp(date.seconds, date.nanoseconds);
+  return format(timestamp.toDate(), 'Pp', { locale: pl });
+}
 </script>
 
 <template>
@@ -225,14 +227,56 @@ watch(date, newDate => store.commit('setTmpVisitDate', newDate));
                   Ocena: ⭐⭐⭐⭐<br>
                   🗺️ ul. Testowa {{ Math.floor(tutor.data.hourRate * 1.33) }} Warszawa
                 </CCardText>
-                <TutorListLeftPanel :selectedTutor="selectedTutor" @click="tutorDetails(tutor)"/>
-                <!-- <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton> -->
+                <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton>
               </CCardBody>
             </CCard>
           </li>
         </ul>
       </div>
     </CContainer>
+
+    <COffcanvas placement="start" :visible="visibleTop" @hide="() => { visibleTop = !visibleTop }">
+      <COffcanvasHeader>
+        <div v-if="selectedTutor">
+          <COffcanvasTitle>
+            <CImage width="50" height="50" :src="selectedTutor.img" alt="" /> {{ selectedTutor.data.first }} {{
+              selectedTutor.data.last }}
+          </COffcanvasTitle>
+        </div>
+        <CCloseButton class="text-reset" @click="() => { visibleTop = false }" />
+      </COffcanvasHeader>
+      <COffcanvasBody>
+        Wiek: {{ selectedTutor.data.age }}<br>
+        Przedmiot: {{ selectedTutor.data.subject }}<br>
+        Poziom: {{ selectedTutor.data.level }}<br>
+        Stawka (h): {{ selectedTutor.data.hourRate }}<br>
+        Bio: {{ selectedTutor.data.description }}<br>
+        <MakeVisitDialog btnText="Umów" :tutor="selectedTutor" @open="handleModalOpened" />
+        <br>
+        Kalendarz dostępności
+        <br>
+        <VCalendar :attributes="attrs">
+          <template #day-popover="{ dayTitle }">
+            <div class="px-2">
+              <div class="text-xs text-gray-700 dark:text-gray-300 font-semibold text-center">
+                Wizyty danego dnia:
+                <br>
+              </div>
+              <ul>
+                <li v-for="{ key, customData } in attrs" :key="key"
+                  class="block text-xs text-gray-700 dark:text-gray-300 bg-red-100">
+                  {{ customData.visitDate }}
+                </li>
+              </ul>
+            </div>
+          </template>
+        </VCalendar>
+        <br>
+        Wybrana data: {{ date }}
+        <br>
+        <VDatePicker v-model="date" :rules="rules" mode="dateTime" is-required />
+      </COffcanvasBody>
+    </COffcanvas>
   </div>
 </template>
 

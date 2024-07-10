@@ -35,10 +35,11 @@ function makeReservation() {
   </CModal>
 </template>
 <script>
-import { db } from "../firebaseInitializer";
+import { db, timeTutor } from "../firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import { defineEmits } from 'vue';
 import ClientMakeVisit from '@/components/VisitPaymentDialog.vue'
+import { logEvent } from "firebase/analytics";
 
 export default {
   props: {
@@ -49,7 +50,7 @@ export default {
     btnText: {
       type: String,
       required: true
-    },
+    }
     // selectedDate: { // TODO store czy prop
     //   type: Date,
     //   required: true
@@ -61,6 +62,9 @@ export default {
       date: null,
       visitId: ''
     }
+  },
+  mounted() {
+    this.stats();
   },
   computed: {
     visitDate() {
@@ -89,12 +93,29 @@ export default {
           detail: { title: 'Umówiono wizytę', content: '', photoUrl: 'https://cdn-icons-png.flaticon.com/512/4436/4436481.png', hide: true }
         });
         window.dispatchEvent(event);
+        // perf
+        try {
+          timeTutor.stop();
+        } catch (error) {
+          console.log(error);
+        }
       } catch (error) {
         const event = new CustomEvent('trigger-toast', {
           detail: { title: 'Wystąpił problem', content: 'Prosimy o kontakt z administratorem', hide: true }
         });
+        window.dispatchEvent(event);
         console.log(error);
       }
+    },
+    stats() {
+      // try {
+      //   perf.stop();
+      //   const endTime = performance.now();
+      //   const executionTime = endTime - startTime;
+      //   logEvent(analytics, 'choose_tutor_time', { value: executionTime.toFixed(2) });
+      // } catch (error) {
+      //   console.log('error perf tutor', error);
+      // }
     },
     closePaid() {
       this.visibleLiveDemo = false;

@@ -105,6 +105,7 @@ export const perf = getPerformance(app);
 
 const t = trace(perf, "init_firebase_objects");
 t.start();
+export const timeTutor = trace(perf, "choose_tutor_time");
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

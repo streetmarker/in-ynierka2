@@ -38,7 +38,7 @@ import {
                     <CTableDataCell>1</CTableDataCell>
                     <CTableDataCell v-if="visit.visitStatus == '-' && $store.state.role.type != 'T'">
                         <VisitPaymentDialog :tutor="visit.tutor" :visitId="visit.docId"
-                            :visitDate="visit.originalVisitDate.toDate()" />
+                            :visitDate="visit.originalVisitDate" />
                     </CTableDataCell>
                     <CTableDataCell v-else>{{ visit.visitStatus }}</CTableDataCell>
                 </CTableRow>
@@ -88,10 +88,11 @@ export default {
 
                 if (role == 'T') {
                     const visitdsIdb = await getIdbData(dbPromiseVisits);
-                    let tmpList = [];
 
-                    if (visitdsIdb.length > 0 && !isUpdated(dbPromiseVisits, visitdsIdb)) {
-                        visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                    let tmpList = [];
+                    let isUpdate = await isUpdated(dbPromiseVisits, visitdsIdb);
+                    if (visitdsIdb.length > 0 && !isUpdate) {
+                        visitdsIdb.sort((a, b) => b.originalVisitDate - a.originalVisitDate);
                         store.commit('setUserVisits', visitdsIdb);
                     } else {
 
@@ -110,8 +111,9 @@ export default {
 
                             tmpList.push(data);
                         }
-                        tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                        tmpList.sort((a, b) => b.originalVisitDate - a.originalVisitDate);
                         tmpList.forEach((el) => {
+                            el.originalVisitDate = el.visitDate.toDate();
                             el.visitDate = this.formatDate(el.visitDate)
                         })
                         store.commit('setUserVisits', tmpList);
@@ -119,12 +121,15 @@ export default {
                     }
                 } else {
                     const visitdsIdb = await getIdbData(dbPromiseVisits);
-                    let tmpList = [];
 
-                    if (visitdsIdb.length > 0 && !isUpdated(dbPromiseVisits, visitdsIdb)) {
-                        visitdsIdb.sort((a, b) => b.visitDate - a.visitDate);
+                    let tmpList = [];
+                    let isUpdate = await isUpdated(dbPromiseVisits, visitdsIdb);
+                    if (visitdsIdb.length > 0 && !isUpdate) {
+                        // console.log('dane z cache', visitdsIdb);
+                        visitdsIdb.sort((a, b) => b.originalVisitDate - a.originalVisitDate);
                         store.commit('setUserVisits', visitdsIdb);
                     } else {
+                        console.log('dane z DB');
                         const q = query(collection(db, "visit"), where("clientId", "==", UID));
                         // const q = query(collection(db, "visit"), where("clientId", "==", TID));
 
@@ -149,9 +154,9 @@ export default {
                             tmpList.push(data);
                         }
 
-                        tmpList.sort((a, b) => b.visitDate - a.visitDate);
+                        tmpList.sort((a, b) => b.originalVisitDate - a.originalVisitDate);
                         tmpList.forEach((el) => {
-                            el.originalVisitDate = el.visitDate;
+                            el.originalVisitDate = el.visitDate.toDate();
                             el.visitDate = this.formatDate(el.visitDate)
                         })
 

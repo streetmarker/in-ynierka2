@@ -31,14 +31,14 @@ import {
         <CCol sm="auto">
           <CCard>
             <CCardBody>
-              <div v-if="userData.fullName.length !== 0">
+              <!-- <div v-if="userData.fullName.length !== 0"> -->
                 <h1>{{ userData.fullName }}</h1>
                 <p>{{ userData.email }}</p>
                 <!-- <img style="width: 50px; height: 50px;"
                   src="https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg"
                   alt="User Photo" /> -->
                 <img style="width: 50px; height: 50px;" :src="userData.photo" alt="User Photo" />
-              </div>
+              <!-- </div> -->
             </CCardBody>
           </CCard>
         </CCol>
@@ -115,25 +115,16 @@ export default {
         { name: 'Fizyka', id: 2 }
       ], optionsL: [
         { name: 'Studia(rozszerzenie)', id: 1 }
-      ],
-      // visitsDb: []
+      ]
     };
   },
   mounted() {
-    // this.getVisits();
+    //
   },
   computed: {
     userData() {
       return this.$store.state.user;
     },
-  },
-  watch: {
-    userData: {
-      immediate: true,
-      handler(newValue) {
-        this.editableData = { ...newValue };
-      }
-    }
   },
   methods: {
     saveChanges() {
@@ -160,9 +151,9 @@ export default {
   }
 };
 </script>
-<style src="../../node_modules/vue-multiselect/dist/vue-multiselect.css"></style>
+<!-- <style src="../../node_modules/vue-multiselect/dist/vue-multiselect.css"></style> -->
 
-<style scoped>
+<!-- <style scoped>
 .home {
   display: flex;
   flex-direction: column;
@@ -201,4 +192,4 @@ export default {
 .appointments li p {
   margin: 5px 0;
 }
-</style>
+</style> -->
