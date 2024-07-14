@@ -1,57 +1,53 @@
 <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-    CTable,
-    CTableBody,
-    CTableHeaderCell,
-    CTableDataCell,
-    CTableHead,
-    CTableRow,
-    CButton
-} from "@coreui/vue";
+// import "@coreui/coreui/dist/css/coreui.min.css";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import {
+//     CTable,
+//     CTableBody,
+//     CTableHeaderCell,
+//     CTableDataCell,
+//     CTableHead,
+//     CTableRow,
+//     CTableCaption
+// } from "@coreui/vue";
 </script>
 
 <template>
-
-    <div class="home">
-        <h2>Umówione wizyty</h2>
-        <CTable>
-            <CTableHead>
-                <CTableRow>
-                    <CTableHeaderCell scope="col">#</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Korepetytor</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Przedmiot</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Data</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Stawka</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Ilość godz.</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Status płatności</CTableHeaderCell>
-                </CTableRow>
-            </CTableHead>
-            <CTableBody v-if="userVisits.length">
-                <CTableRow active v-for="(visit, index) in userVisits" :key="visit.id">
-                    <CTableHeaderCell scope="row">{{ index + 1 }}</CTableHeaderCell>
-                    <CTableDataCell>{{ visit.details.first + " " + visit.details.last }}</CTableDataCell>
-                    <CTableDataCell>{{ visit.details.subject }}</CTableDataCell>
-                    <CTableDataCell>{{ visit.visitDate }}</CTableDataCell>
-                    <CTableDataCell>{{ visit.details.hourRate }}</CTableDataCell>
-                    <CTableDataCell>1</CTableDataCell>
-                    <CTableDataCell v-if="visit.visitStatus == '-' && $store.state.role.type != 'T'">
-                        <VisitPaymentDialog :tutor="visit.tutor" :visitId="visit.docId"
-                            :visitDate="visit.originalVisitDate" />
-                    </CTableDataCell>
-                    <CTableDataCell v-else>{{ visit.visitStatus }}</CTableDataCell>
-                </CTableRow>
-            </CTableBody>
-        </CTable>
-    </div>
-
+    <CTable responsive caption="top" color="primary">
+        <CTableCaption style="color:yellow">Umówione wizyty</CTableCaption>
+        <CTableHead>
+            <CTableRow>
+                <CTableHeaderCell scope="col">#</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Korepetytor</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Przedmiot</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Data</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Stawka</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Ilość godz.</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Status płatności</CTableHeaderCell>
+            </CTableRow>
+        </CTableHead>
+        <CTableBody v-if="userVisits.length">
+            <CTableRow active v-for="(visit, index) in userVisits" :key="visit.id">
+                <CTableHeaderCell scope="row">{{ index + 1 }}</CTableHeaderCell>
+                <CTableDataCell>{{ visit.details.first + " " + visit.details.last }}</CTableDataCell>
+                <CTableDataCell>{{ visit.details.subject }}</CTableDataCell>
+                <CTableDataCell>{{ visit.visitDate }}</CTableDataCell>
+                <CTableDataCell>{{ visit.details.hourRate }}</CTableDataCell>
+                <CTableDataCell>1</CTableDataCell>
+                <CTableDataCell v-if="visit.visitStatus == '-' && $store.state.role.type != 'T'">
+                    <VisitPaymentDialog :tutor="visit.tutor" :visitId="visit.docId"
+                        :visitDate="visit.originalVisitDate" />
+                </CTableDataCell>
+                <CTableDataCell v-else>{{ visit.visitStatus }}</CTableDataCell>
+            </CTableRow>
+        </CTableBody>
+    </CTable>
 </template>
 
 <script>
 import store from "../store/index";
 import router from '../router/index'
-import { doc, getDoc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db, dbPromiseVisits, getIdbData, putIdbData, isUpdated, saveErrorInDb } from "../firebaseInitializer";
 import VisitPaymentDialog from '@/components/VisitPaymentDialog.vue'
 import Loader from '../../public/loader'

@@ -1,30 +1,25 @@
 <script setup>
-import {
-  CCard,
-  CImage,
-  CCardBody,
-  CCardTitle,
-  CCardText,
-  CNavbar,
-  CContainer,
-  CNavbarNav,
-  CNavbarBrand,
-  CForm,
-  CFormInput,
-  CDropdown,
-  CDropdownToggle,
-} from "@coreui/vue";
+// import {
+//   CCard,
+//   CImage,
+//   CCardBody,
+//   CCardTitle,
+//   CCardText,
+//   CNavbar,
+//   CContainer,
+//   CNavbarNav,
+//   CNavbarBrand,
+//   CForm,
+//   CFormInput,
+//   CDropdown,
+//   CDropdownToggle,
+// } from "@coreui/vue";
 import { ref, computed, onMounted, watch } from 'vue';
 import store from '../store/index';
-// import MakeVisitDialog from './MakeVisitDialog.vue';
 import TutorListLeftPanel from './TutorListLeftPanel.vue';
-import { db, storage, perf, analytics, dbPromiseTutors, getIdbData, putIdbData, isUpdated, timeTutor } from "../firebaseInitializer";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { db, storage, dbPromiseTutors, getIdbData, putIdbData, isUpdated, timeTutor } from "../firebaseInitializer";
+import { collection, getDocs } from "firebase/firestore";
 import { ref as firebaseRef, getDownloadURL } from "firebase/storage";
-import { trace } from "firebase/performance";
-import { logEvent } from "firebase/analytics";
-import { pl } from 'date-fns/locale';
-import { format } from 'date-fns';
 
 // Inicjalizacja zmiennej, która przechowa referencję do trace
 const startTime = performance.now();
@@ -213,7 +208,7 @@ watch(date, newDate => store.commit('setTmpVisitDate', newDate));
         <ul>
           <li v-for="(tutor, index) in filteredTutors" :key="index">
             <CCard>
-              <CImage style="position: absolute" width="100" height="100" :src="tutor.img" />
+              <CImage style="position: absolute" width="100" height="100" :src="tutor.img" loading="lazy" />
               <CCardBody>
                 <CCardTitle>{{ tutor.data.first }} {{ tutor.data.last }}</CCardTitle>
                 <CCardText>
@@ -221,12 +216,11 @@ watch(date, newDate => store.commit('setTmpVisitDate', newDate));
                   Przedmiot: {{ tutor.data.subject }}<br>
                   Poziom: {{ tutor.data.level }}<br>
                   Stawka (h): {{ tutor.data.hourRate }}<br>
-                  Bio: {{ tutor.data.description }}<br>
+                  Bio: {{ tutor.data.description ? tutor.data.description.substring(0, 100) + '...' : '' }}<br>
                   Ocena: ⭐⭐⭐⭐<br>
                   🗺️ ul. Testowa {{ Math.floor(tutor.data.hourRate * 1.33) }} Warszawa
                 </CCardText>
                 <TutorListLeftPanel :selectedTutor="selectedTutor" @click="tutorDetails(tutor)"/>
-                <!-- <CButton color="primary" @click="tutorDetails(tutor)">Szczegóły</CButton> -->
               </CCardBody>
             </CCard>
           </li>

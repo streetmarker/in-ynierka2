@@ -87,13 +87,13 @@ export const isUpdated = async (dbPromise, idbData) => { // TODO coś mniej poda
   // querySnapshot.forEach((doc) => {
   //   res.push(doc.data())
   // });
-// console.log('len', querySnapshot.docs.length != idbData.length,  querySnapshot.docs.length, idbData.length);
+  // console.log('len', querySnapshot.docs.length != idbData.length,  querySnapshot.docs.length, idbData.length);
   if (querySnapshot.docs.length != idbData.length) {
-    console.log('isUpdated:update:',dbData);
+    console.log('isUpdated:update:', dbData);
     return true
   }
   else {
-    console.log('isUpdated:data from cache:',dbData);
+    console.log('isUpdated:data from cache:', dbData);
     return false
   }
 }
@@ -115,6 +115,24 @@ export { firebase };
 export const messaging = getMessaging(app);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+export const logOut = () => {
+  auth.signOut();
+  deleteIdbData(dbPromiseVisits);
+  store.commit('resetUser');
+  store.commit('setUserRole', { type: '', loggedIn: false });
+  // function tmp(cb) {
+  //   try {
+  //     renderLoginUI();
+  //     Loader.close();
+  //   } catch (error) {
+  //     setTimeout(() => {
+  //       tmp();
+  //     }, 1000);
+  //   }
+  // }
+  // tmp();
+}
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
@@ -164,13 +182,12 @@ export const token = getToken(messaging, {
 
 t.stop();
 
-export async function saveErrorInDb(stackTrace, router, component, method){
+export async function saveErrorInDb(stackTrace, router, component, method) {
   const today = new Date();
-  console.info(stackTrace);
-  waitForCurrentUser(() => {
+  try {
     var user = {
-      uid: auth.currentUser.uid,
-      displayName: auth.currentUser.displayName
+      uid: auth ? auth.currentUser.uid : null,
+      displayName: auth ? auth.currentUser.displayName : null
     }
     addDoc(collection(db, "error"), {
       date: today || null,
@@ -179,8 +196,13 @@ export async function saveErrorInDb(stackTrace, router, component, method){
       method: method || null,
       user: user || null,
       stack: stackTrace ? String(stackTrace) : null
-    });    
-  }, 3000); // Max czas oczekiwania: 3 sekundy
+    });
+    
+  } catch (error) {
+    
+  }
+  // waitForCurrentUser(() => {
+  // }, 3000); // Max czas oczekiwania: 3 sekundy
 }
 
 async function getTestDoc() {
@@ -213,7 +235,7 @@ function waitForCurrentUser(callback, maxWaitTime = 3000, interval = 500) {
       Loader.close();
     } else if (elapsedTime >= maxWaitTime) {
       console.error("Przekroczono limit czasu oczekiwania na uzyskanie danych użytkownika.");
-      renderLoginUI(); // załaduj UI dla usera który się wylogował lub nie ma konta
+      // renderLoginUI(); // załaduj UI dla usera który się wylogował lub nie ma konta
       Loader.close();
     } else {
       setTimeout(() => {
@@ -408,10 +430,10 @@ async function initLoggedUser() {
       console.error('Błąd podczas pobierania roli z Firestore:', error);
     }
   })();
-  document.getElementById('sign-out').style.display = 'initial';
-  document.getElementById('sign-in').style.display = 'none';
+  // document.getElementById('sign-out').style.display = 'initial';
+  // document.getElementById('sign-in').style.display = 'none';
 }
-function renderLoginUI() {
+export const renderLoginUI = () => {
 
   ui.start('#firebaseui-auth-container', {
     // signInSuccessUrl: '/',
@@ -472,8 +494,8 @@ function renderLoginUI() {
 
         // store.commit('setUser', formatData);
 
-        document.getElementById('sign-out').style.display = 'initial';
-        document.getElementById('sign-in').style.display = 'none';
+        // document.getElementById('sign-out').style.display = 'initial';
+        // document.getElementById('sign-in').style.display = 'none';
 
         return false;
       },
@@ -487,42 +509,42 @@ function renderLoginUI() {
 
 var initApp = function () {
   if (!auth.currentUser) {
-    document.getElementById('sign-out').style.display = 'none';
-    document.getElementById('sign-in').style.display = 'initial';
+    // document.getElementById('sign-out').style.display = 'none';
+    // document.getElementById('sign-in').style.display = 'initial';
   }
-  document.getElementById('sign-out').addEventListener('click', function () {
+  // document.getElementById('sign-out').addEventListener('click', function () {
 
-    auth.signOut();
-    deleteIdbData(dbPromiseVisits);
+  //   auth.signOut();
+  //   deleteIdbData(dbPromiseVisits);
 
-    // let user = {
-    //   id: "",
-    //   fullName: "",
-    //   email: "",
-    //   photo: "",
-    //   provider: ""
-    // }
-    // store.commit('setUser', user); // TO DEL
-    store.commit('resetUser');
-    store.commit('setUserRole', { type: '', loggedIn: false });
+  //   // let user = {
+  //   //   id: "",
+  //   //   fullName: "",
+  //   //   email: "",
+  //   //   photo: "",
+  //   //   provider: ""
+  //   // }
+  //   // store.commit('setUser', user); // TO DEL
+  //   store.commit('resetUser');
+  //   store.commit('setUserRole', { type: '', loggedIn: false });
 
-    document.getElementById('sign-out').style.display = 'none';
-    document.getElementById('sign-in').style.display = 'initial';
+  //   // document.getElementById('sign-out').style.display = 'none';
+    // document.getElementById('sign-in').style.display = 'initial';
 
-    Loader.open();
-    function tmp(cb) {
-      try {
-        renderLoginUI();
-        Loader.close();
-      } catch (error) {
-        setTimeout(() => {
-          tmp();
-        }, 1000);
-      }
-    }
-    tmp();
-  });
-  // document.getElementById('sign-out').style.display = 'none';
+  //   Loader.open();
+  //   function tmp(cb) {
+  //     try {
+  //       renderLoginUI();
+  //       Loader.close();
+  //     } catch (error) {
+  //       setTimeout(() => {
+  //         tmp();
+  //       }, 1000);
+  //     }
+  //   }
+  //   tmp();
+  // });
+  // // document.getElementById('sign-out').style.display = 'none'; // był comment
   // document.getElementById('sign-in').style.display = 'initial';
   // document.getElementById('delete-account').addEventListener(
   //     'click', function() {
@@ -585,57 +607,3 @@ function triggerToastFromExternalJS(title, content, photoUrl) {
   });
   window.dispatchEvent(event);
 }
-
-// These registration tokens come from the client FCM SDKs.
-// const registrationTokens = [
-//   token
-// ];
-// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// // The topic name can be optionally prefixed with "/topics/".
-// // const topic = 'highScores';
-
-// const message = {
-//   data: {
-//     score: '850',
-//     time: '2:45'
-//   },
-//   topic: topic
-// };
-// const messaging2 = firebase.messaging();
-
-// console.log(messaging2);
-// // Subscribe the devices corresponding to the registration tokens to the
-// // topic.
-// messaging2.subscribeToTopic(registrationTokens, topic)
-//   .then((response) => {
-//     // See the MessagingTopicManagementResponse reference documentation
-//     // for the contents of response.
-//     console.log('Successfully subscribed to topic:', response);
-//   })
-//   .catch((error) => {
-//     console.log('Error subscribing to topic:', error);
-//   });
-
-
-
-// // Send a message to devices subscribed to the provided topic.
-// messaging2.send(message)
-//   .then((response) => {
-//     // Response is a message ID string.
-//     console.log('Successfully sent message:', response);
-//   })
-//   .catch((error) => {
-//     console.log('Error sending message:', error);
-//   });
-
-// // Unsubscribe the devices corresponding to the registration tokens from
-// // the topic.
-// messaging2.unsubscribeFromTopic(registrationTokens, topic)
-//   .then((response) => {
-//     // See the MessagingTopicManagementResponse reference documentation
-//     // for the contents of response.
-//     console.log('Successfully unsubscribed from topic:', response);
-//   })
-//   .catch((error) => {
-//     console.log('Error unsubscribing from topic:', error);
-//   });

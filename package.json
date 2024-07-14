@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "commit": "git add . && git commit -m 'fix' && git push",
+    "commit": "git add . && git commit -m \"fix\" && git push",
     "build": "vue-cli-service build && cp -r dist/* ../../Firestore/public/",
     "host": "cd ../../Firestore && firebase deploy --only hosting && cd ../GIT/in-ynierka2",
     "fcm": "cp ./src/firebase-messaging-sw.js ../../Firestore/public/ && npm run host",

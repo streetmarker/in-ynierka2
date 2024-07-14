@@ -1,27 +1,27 @@
 <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  CButton,
-  CCloseButton,
-  COffcanvas,
-  COffcanvasHeader,
-  COffcanvasTitle,
-  COffcanvasBody,
-  CFooter,
-  CLink,
-  CNavbar,
-  CContainer,
-  CNavbarBrand,
-  CNavbarToggler,
-  CCollapse,
-  CNavbarNav,
-  CNavItem,
-  CNavLink,
-  CNavbarText,
-  CRow,
-  CCol
-} from "@coreui/vue";
+// import "@coreui/coreui/dist/css/coreui.min.css";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import {
+//   CButton,
+//   CCloseButton,
+//   COffcanvas,
+//   COffcanvasHeader,
+//   COffcanvasTitle,
+//   COffcanvasBody,
+//   CFooter,
+//   CLink,
+//   CNavbar,
+//   CContainer,
+//   CNavbarBrand,
+//   CNavbarToggler,
+//   CCollapse,
+//   CNavbarNav,
+//   CNavItem,
+//   CNavLink,
+//   CNavbarText,
+//   CRow,
+//   CCol
+// } from "@coreui/vue";
 import { ref, watch } from "vue";
 const role = ref("C");
 
@@ -35,15 +35,15 @@ watch(role, (newRole, oldRole) => {
   <div id="app">
     <!-- <div class="notification-bar" id="notificationBar"></div> -->
     <ToastMsg />
-    <div v-if="!$store.state.role.loggedIn">
-      <COffcanvas dark placement="start" :visible="visible" @hide="() => {
-        visible = !visible;
+    <!-- <div v-if="!$store.state.role.loggedIn">
+      <COffcanvas dark placement="start" :visible="visibleLogin" @hide="() => {
+        visibleLogin = !visibleLogin;
       }
         ">
         <COffcanvasHeader>
           <COffcanvasTitle>Wybierz metodę logowania/rejestracji</COffcanvasTitle>
           <CCloseButton class="text-reset" @click="() => {
-            visible = false;
+            visibleLogin = false;
           }
             " />
         </COffcanvasHeader>
@@ -56,69 +56,58 @@ watch(role, (newRole, oldRole) => {
           <div id="firebaseui-auth-container"></div>
         </COffcanvasBody>
         <CButton color="primary" @click="() => {
-          visible = !visible;
+          visibleLogin = !visibleLogin;
         }
           ">Powrót</CButton>
       </COffcanvas>
-    </div>
+    </div> -->
 
-    <CNavbar color-scheme="dark" class="bg-dark">
-      <CContainer>
-        <CNavbarText></CNavbarText>
-
-        <CNavbarBrand href="#" class="bg-dark">
-          <!-- <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" /> -->
+    <CNavbar style="border-bottom: 2px solid grey;" color-scheme="dark" class="bg-dark">
+      <CContainer fluid>
           <CNavbarBrand><router-link style="text-decoration: none" to="/">
-              <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor
-              App</router-link></CNavbarBrand>
-        </CNavbarBrand>
-        <CNavbarText></CNavbarText>
+            <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor
+            App</router-link></CNavbarBrand>
+          <CNavbarBrand >
+            <!-- <CButton v-if="!$store.state.role.loggedIn" id="sign-in" class="bg-light" style="text-decoration: none;" @click="() => {
+              visibleLogin = !visibleLogin;
+            }
+              "><u>Logowanie / Rejestracja</u></CButton> -->
+            <CButton href="#/panel">
+            <img style="width: 30px; height: 30px; border: 1px solid transparent;" src="../public/5964729.png" />
+          </CButton>
+            <!-- <b><i>{{ $store.state.user.fullName }}</i></b> -->
+            <!-- <CButton id="sign-out" style="text-decoration: none; color: white"> <u>Wyloguj się</u></CButton> -->
+          </CNavbarBrand>
+        <CNavbarToggler class="bg-light" @click="visible = !visible"/>
+        <CCollapse class="navbar-collapse" :visible="visible">
+          <CNavbarNav>
+            <div v-if="clientAccess">
+              <CNavItem><router-link style="text-decoration: none" v-if="clientAccess" to="/panel">Panel
+                  klienta</router-link></CNavItem>
+              <CNavItem><router-link style="text-decoration: none" v-if="clientAccess" to="/tutor-list">Lista
+                  korepetytorów</router-link>
+              </CNavItem>
+            </div>
+            <!--  -->
+            <div v-if="tutorAccess">
+              <CNavItem><router-link style="text-decoration: none" v-if="tutorAccess"
+                  to="/tutor-manager">Zarządzanie
+                  wizytami</router-link>
+              </CNavItem>
+              <CNavItem><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-admin">Zarządzanie
+                  ofertą</router-link>
+              </CNavItem>
+            </div>
+            <!--  -->
+            <div v-if="adminAccess">
+              <CNavItem><router-link style="text-decoration: none" v-if="adminAccess" to="/admin">Administracja
+                  aplikacją</router-link></CNavItem>
+            </div>
+          </CNavbarNav>
+        </CCollapse>
       </CContainer>
     </CNavbar>
-    <div class="bg-dark">
-      <CNavbar style="border-bottom: 2px solid grey;" lor-scheme="dark" class="bg-dark">
-        <CContainer fluid>
-          <div style="width: 30%;"></div>
-          <div v-if="clientAccess">
-            <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/panel">Panel
-                klienta</router-link></CNavbarBrand>
-
-            <!-- <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/visit">Umów
-              wizytę</router-link></CNavbarBrand> -->
-
-            <CNavbarBrand><router-link style="text-decoration: none" v-if="clientAccess" to="/tutor-list">Lista
-                korepetytorów</router-link>
-            </CNavbarBrand>
-
-          </div>
-          <!--  -->
-          <div v-if="tutorAccess">
-            <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-manager">Zarządzanie
-                wizytami</router-link>
-            </CNavbarBrand>
-            <CNavbarBrand><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-admin">Zarządzanie
-                ofertą</router-link>
-            </CNavbarBrand>
-          </div>
-          <!--  -->
-          <div v-if="adminAccess">
-            <CNavbarBrand><router-link style="text-decoration: none" v-if="adminAccess" to="/admin">Administracja
-                aplikacją</router-link></CNavbarBrand>
-          </div>
-          <div style="width: 30%;">
-            <CButton id="sign-in" class="bg-dark" style="text-decoration: none;" @click="() => {
-              visible = !visible;
-            }
-              "><u>Logowanie / Rejestracja</u></CButton>
-            <img style="width: 3vh; border: 1px solid transparent;" :src="$store.state.user.photo" />
-            <b><i>{{ $store.state.user.fullName }}</i></b>
-            <CButton id="sign-out" style="text-decoration: none;" class="bg-dark"> <u>Wyloguj się</u></CButton>
-          </div>
-          <!-- <CNavbarText></CNavbarText> -->
-        </CContainer>
-      </CNavbar>
-    </div>
-
+<!--  -->
     <div class="main-content container">
       <div id="features" class="row text-center">
         <div class="col">
@@ -146,7 +135,7 @@ watch(role, (newRole, oldRole) => {
 </template>
 
 <script>
-import { db, auth, token, saveErrorInDb } from "./firebaseInitializer";
+import { db, auth, token } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
 import ToastMsg from './components/ToastMsg.vue'
@@ -159,10 +148,11 @@ export default {
     return {
       logs: [],
       showLoginDialog: false,
-      visible: false,
+      visibleLogin: false,
       role: "C",
       loggedInFront: false,
-      tokenIn: ''
+      tokenIn: '',
+      visible: false
     };
   },
   computed: {
@@ -324,7 +314,7 @@ nav a.router-link-exact-active {
 }
 
 .col {
-  display: flex;
+  /* display: flex; */
   /* Ustawia elementy w rzędzie */
   align-items: center;
   /* Wyśrodkowuje zawartość w pionie */

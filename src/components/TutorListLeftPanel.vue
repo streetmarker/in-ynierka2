@@ -1,21 +1,20 @@
 <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  CImage,
-  CButton,
-  COffcanvas,
-  COffcanvasHeader,
-  COffcanvasTitle,
-  CCloseButton,
-  COffcanvasBody,
-  CListGroup,
-  CListGroupItem
-} from "@coreui/vue";
+// import "@coreui/coreui/dist/css/coreui.min.css";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import {
+//   CImage,
+//   CButton,
+//   COffcanvas,
+//   COffcanvasHeader,
+//   COffcanvasTitle,
+//   CCloseButton,
+//   COffcanvasBody,
+//   CListGroup,
+//   CListGroupItem
+// } from "@coreui/vue";
 import { ref, computed, watch } from 'vue';
-import { db, perf, app, timeTutor } from "../firebaseInitializer";
+import { db } from "../firebaseInitializer";
 import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
-import { getPerformance } from "firebase/performance";
 import MakeVisitDialog from './MakeVisitDialog.vue';
 import { pl } from 'date-fns/locale';
 import { format } from 'date-fns';

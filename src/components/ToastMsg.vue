@@ -1,13 +1,13 @@
 <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  CButton,
-  CToaster,
-  CToast,
-  CToastHeader,
-  CToastBody,
-} from "@coreui/vue";
+// import "@coreui/coreui/dist/css/coreui.min.css";
+// import "bootstrap/dist/css/bootstrap.min.css";
+// import {
+//   CButton,
+//   CToaster,
+//   CToast,
+//   CToastHeader,
+//   CToastBody,
+// } from "@coreui/vue";
 </script>
 
 <template>

@@ -1,35 +1,50 @@
 <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  CTable,
-  CTableBody,
-  CTableHeaderCell,
-  CTableDataCell,
-  CTableHead,
-  CTableRow,
-  CButton,
-  CRow,
-  CCol,
-  CCollapse,
-  CCard,
-  CCardBody,
-  CContainer,
-  CCardTitle,
-  CForm,
-  CFormLabel,
-  CFormInput,
-  CFormCheck,
-  CFormSelect
-} from "@coreui/vue";
+import VisitsList from "@/components/VisitsList.vue";
+import { logOut, renderLoginUI } from "@/firebaseInitializer";
+import { onMounted, ref, watch } from "vue";
+import store from "../store/index";
+
+onMounted(async () => {
+  if(!store.state.role.loggedIn)
+  renderLoginUI();
+});
+
+const role = ref("C");
+
+watch(role, (newRole, oldRole) => {
+  console.log("tmpRole WATCH");
+  store.commit("setTmpRole", newRole);
+});
+
+function logOutIn() {
+  logOut();
+  setTimeout(() => {
+    renderLoginUI();
+  }, 2000);
+}
 </script>
 
 <template>
-  <div class="home">
-    <CContainer>
-      <CRow>
+        <CCard v-if="!$store.state.role.loggedIn">
+          <CCardHeader>Wybierz metodę logowania/rejestracji
+          </CCardHeader>
+          <CCardBody>
+          <CCloseButton class="text-reset" @click="() => {
+            visibleLogin = false;
+          }
+            " />
+          Wybierz swoją rolę
+          <select id="role" v-model="role">
+            <option value="C">Uczeń</option>
+            <option value="T">Korepetytor</option>
+          </select>
+          <div id="firebaseui-auth-container"></div>
+        </CCardBody>
+        </CCard>
+<div v-else>
         <CCol sm="auto">
           <CCard>
+            <CButton class="bg-light" @click="logOutIn()">Wyloguj się</CButton>
             <CCardBody>
               <!-- <div v-if="userData.fullName.length !== 0"> -->
                 <h1>{{ userData.fullName }}</h1>
@@ -80,18 +95,11 @@ import {
             </div>
           </CCol>
         </CCol>
-      </CRow>
-    </CContainer>
-
-    <VisitsList />
-  </div>
+        <VisitsList />
+      </div>
 </template>
 
 <script>
-import VisitsList from "@/components/VisitsList.vue";
-import Multiselect from 'vue-multiselect';
-// import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-// import { db } from "../firebaseInitializer";
 
 export default {
   name: "ClientPanel",
@@ -130,66 +138,7 @@ export default {
     saveChanges() {
       this.$store.commit('updateUser', this.editableData);
     },
-    // async getVisits() { // TODEL
-    //   const visitdsIdb = await getIdbData(dbPromiseVisits);
-      
-    //   if (visitdsIdb.length > 0){
-    //     this.visitsDb = visitdsIdb;
-    //   } else {
-    //     var UID = this.$store.state.user.id;
-    //     const q = query(collection(db, "visit"), where("clientId", "==", UID));
-    //     const data = [];
-
-    //     const querySnapshot = await getDocs(q); querySnapshot.forEach(async (doc) => {
-    //       data.push(doc.data());
-    //     });
-    //     this.visitsDb = data;
-    //     putIdbData(dbPromiseVisits, data);
-
-    //   }
-    // }
   }
 };
 </script>
-<!-- <style src="../../node_modules/vue-multiselect/dist/vue-multiselect.css"></style> -->
-
-<!-- <style scoped>
-.home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.edit-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.appointments {
-  margin-top: 30px;
-  width: 100%;
-}
-
-.appointments h2 {
-  font-size: 1.5em;
-  margin-bottom: 15px;
-}
-
-.appointments ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.appointments li {
-  background-color: #f9f9f9;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-}
-
-.appointments li p {
-  margin: 5px 0;
-}
-</style> -->
+<style src="../../node_modules/vue-multiselect/dist/vue-multiselect.css"></style>

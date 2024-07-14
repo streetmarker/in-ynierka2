@@ -1,4 +1,4 @@
-<script setup>
+<!-- <script setup>
 import "@coreui/coreui/dist/css/coreui.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
@@ -8,7 +8,7 @@ import {
   CModalTitle,
   CModalBody
 } from "@coreui/vue";
-</script>
+</script> -->
 <template>
   <div>
     <CButton color="primary" @click="() => { initPaypal() }">Opłać wizytę</CButton>

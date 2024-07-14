@@ -1,12 +1,12 @@
 <script setup>
-import {
-  CModal,
-  CButton,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter
-} from "@coreui/vue";
+// import {
+//   CModal,
+//   CButton,
+//   CModalHeader,
+//   CModalTitle,
+//   CModalBody,
+//   CModalFooter
+// } from "@coreui/vue";
 const emit = defineEmits(['open'])
 
 function makeReservation() {
