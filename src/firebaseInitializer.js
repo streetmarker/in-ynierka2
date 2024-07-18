@@ -313,15 +313,6 @@ async function getUserRoleFirebase(uid) {
   // logEvent(analytics, logData.name, {
   //   value: logData.value + " time:  " + new Date()
   // });
-  // if (process.env.VUE_APP_LOG_API) {
-  //   axios.post('http://localhost:3000/api/logs', logData)
-  //     .then(response => {
-  //       console.log('Log sent successfully');
-  //     })
-  //     .catch(error => {
-  //       console.info('Error sending log:', error);
-  //     });
-  // }
 
   return docSnap.data().role
 }
@@ -344,16 +335,6 @@ async function getTutorFirebase(uid) { // pobranie po userId
     // const executionTime = endTime - startTime;
     // const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
     // logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
-    // if (process.env.VUE_APP_LOG_API) {
-
-    //   axios.post('http://localhost:3000/api/logs', logData)
-    //     .then(response => {
-    //       console.log('Log sent successfully');
-    //     })
-    //     .catch(error => {
-    //       console.info('Error sending log:', error);
-    //     });
-    // }
     res = doc.data()
   });
   t.stop();
