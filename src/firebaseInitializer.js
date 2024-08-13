@@ -20,6 +20,9 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 Loader.open();
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://support.google.com/firebase/answer/7015592
+
+export const env = process.env.NODE_ENV;
+
 const firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
   authDomain: process.env.VUE_APP_APP_DOMAIN,

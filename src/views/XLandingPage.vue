@@ -3,7 +3,7 @@
     <div class="jumbotron text-center">
       <h1>Aplikacja do zarządzania korepetycjami</h1>
       <div class="jumbotron text-center">
-        <img style="width: 25%" class="img-fluid rounded" src="../../public/front_img.svg" alt="Lista korepetytorów">
+        <img style="width: 25%" class="img-fluid rounded" src="../../public/front_img.jpg" alt="Lista korepetytorów">
       </div>
       <p>
         Zarządzaj swoimi korepetycjami w łatwy sposób, gdziekolwiek jesteś.

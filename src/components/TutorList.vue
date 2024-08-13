@@ -1,19 +1,4 @@
 <script setup>
-// import {
-//   CCard,
-//   CImage,
-//   CCardBody,
-//   CCardTitle,
-//   CCardText,
-//   CNavbar,
-//   CContainer,
-//   CNavbarNav,
-//   CNavbarBrand,
-//   CForm,
-//   CFormInput,
-//   CDropdown,
-//   CDropdownToggle,
-// } from "@coreui/vue";
 import { ref, computed, onMounted, watch } from 'vue';
 import store from '../store/index';
 import TutorListLeftPanel from './TutorListLeftPanel.vue';

@@ -1,27 +1,4 @@
 <script setup>
-// import "@coreui/coreui/dist/css/coreui.min.css";
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import {
-//   CButton,
-//   CCloseButton,
-//   COffcanvas,
-//   COffcanvasHeader,
-//   COffcanvasTitle,
-//   COffcanvasBody,
-//   CFooter,
-//   CLink,
-//   CNavbar,
-//   CContainer,
-//   CNavbarBrand,
-//   CNavbarToggler,
-//   CCollapse,
-//   CNavbarNav,
-//   CNavItem,
-//   CNavLink,
-//   CNavbarText,
-//   CRow,
-//   CCol
-// } from "@coreui/vue";
 import { ref, watch } from "vue";
 const role = ref("C");
 
@@ -33,81 +10,10 @@ watch(role, (newRole, oldRole) => {
 
 <template>
   <div id="app">
-    <!-- <div class="notification-bar" id="notificationBar"></div> -->
     <ToastMsg />
-    <!-- <div v-if="!$store.state.role.loggedIn">
-      <COffcanvas dark placement="start" :visible="visibleLogin" @hide="() => {
-        visibleLogin = !visibleLogin;
-      }
-        ">
-        <COffcanvasHeader>
-          <COffcanvasTitle>Wybierz metodę logowania/rejestracji</COffcanvasTitle>
-          <CCloseButton class="text-reset" @click="() => {
-            visibleLogin = false;
-          }
-            " />
-        </COffcanvasHeader>
-        <COffcanvasBody>
-          Wybierz swoją rolę
-          <select id="role" v-model="role">
-            <option value="C">Uczeń</option>
-            <option value="T">Korepetytor</option>
-          </select>
-          <div id="firebaseui-auth-container"></div>
-        </COffcanvasBody>
-        <CButton color="primary" @click="() => {
-          visibleLogin = !visibleLogin;
-        }
-          ">Powrót</CButton>
-      </COffcanvas>
-    </div> -->
 
-    <CNavbar style="border-bottom: 2px solid grey;" color-scheme="dark" class="bg-dark">
-      <CContainer fluid>
-          <CNavbarBrand><router-link style="text-decoration: none" to="/">
-            <img src="../firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor
-            App</router-link></CNavbarBrand>
-          <CNavbarBrand >
-            <!-- <CButton v-if="!$store.state.role.loggedIn" id="sign-in" class="bg-light" style="text-decoration: none;" @click="() => {
-              visibleLogin = !visibleLogin;
-            }
-              "><u>Logowanie / Rejestracja</u></CButton> -->
-            <CButton href="#/panel">
-            <img style="width: 30px; height: 30px; border: 1px solid transparent;" src="../public/5964729.png" />
-          </CButton>
-            <!-- <b><i>{{ $store.state.user.fullName }}</i></b> -->
-            <!-- <CButton id="sign-out" style="text-decoration: none; color: white"> <u>Wyloguj się</u></CButton> -->
-          </CNavbarBrand>
-        <CNavbarToggler class="bg-light" @click="visible = !visible"/>
-        <CCollapse class="navbar-collapse" :visible="visible">
-          <CNavbarNav>
-            <div v-if="clientAccess">
-              <CNavItem><router-link style="text-decoration: none" v-if="clientAccess" to="/panel">Panel
-                  klienta</router-link></CNavItem>
-              <CNavItem><router-link style="text-decoration: none" v-if="clientAccess" to="/tutor-list">Lista
-                  korepetytorów</router-link>
-              </CNavItem>
-            </div>
-            <!--  -->
-            <div v-if="tutorAccess">
-              <CNavItem><router-link style="text-decoration: none" v-if="tutorAccess"
-                  to="/tutor-manager">Zarządzanie
-                  wizytami</router-link>
-              </CNavItem>
-              <CNavItem><router-link style="text-decoration: none" v-if="tutorAccess" to="/tutor-admin">Zarządzanie
-                  ofertą</router-link>
-              </CNavItem>
-            </div>
-            <!--  -->
-            <div v-if="adminAccess">
-              <CNavItem><router-link style="text-decoration: none" v-if="adminAccess" to="/admin">Administracja
-                  aplikacją</router-link></CNavItem>
-            </div>
-          </CNavbarNav>
-        </CCollapse>
-      </CContainer>
-    </CNavbar>
-<!--  -->
+    <Navbar />
+
     <div class="main-content container">
       <div id="features" class="row text-center">
         <div class="col">
@@ -118,12 +24,15 @@ watch(role, (newRole, oldRole) => {
       </div>
     </div>
 
-    <!-- TODO -->
-    <!-- <div v-if="process.env.VUE_APP_NODE_ENV === 'development'">
-      {{ tokenIn }}
-    </div> -->
+    <div v-if="env === 'development'">
+      <CCard>
+        <CCardHeader> {{ tokenIn }}
+        </CCardHeader>
+      </CCard>
+    </div>
     <CFooter style="border-top: 2px solid grey;" class="bg-dark">
       <div>
+        <!-- left side -->
         <CLink href="https://coreui.io">Tutor App</CLink>
         <span> &copy; 2024</span>
       </div>
@@ -135,10 +44,11 @@ watch(role, (newRole, oldRole) => {
 </template>
 
 <script>
-import { db, auth, token } from "./firebaseInitializer";
+import { db, auth, token, env } from "./firebaseInitializer";
 import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
 import ToastMsg from './components/ToastMsg.vue'
+import Navbar from './components/Navbar.vue'
 
 export default {
   components: {
@@ -152,7 +62,8 @@ export default {
       role: "C",
       loggedInFront: false,
       tokenIn: '',
-      visible: false
+      // visible: false,
+      visibleExternalContent: false,
     };
   },
   computed: {
@@ -245,22 +156,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  /* color: #2c3e50; */
-  /* background-color: #f0f0f0; */
-  /* background-image: radial-gradient(circle, #f0f0f0 0%, #61c75e 140%); */
-  background: url('../public/bg.svg');
+  /* background: url('../public/bg.svg'); */
+  /* background: url('../public/bg.min.svg') no-repeat center center fixed; */
+  background-size: cover;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
+
 
 .main-content {
   flex: 1;
 }
 
 .bg-dark {
-  /* background-image: radial-gradient(circle, #f0f0f0 0%, #3f8d3c 140%); */
-  /* background-color: #2c3e50; */
   color: #fff;
   text-decoration: none;
 
@@ -272,10 +181,6 @@ body {
   padding: 20px;
 }
 
-/* .main-content > * {
-  background-color: rgba(255, 255, 255, 1);
-  padding: 20px;
-} */
 a {
   color: #fff;
 }
@@ -314,12 +219,8 @@ nav a.router-link-exact-active {
 }
 
 .col {
-  /* display: flex; */
-  /* Ustawia elementy w rzędzie */
   align-items: center;
-  /* Wyśrodkowuje zawartość w pionie */
   justify-content: center;
-  /* Wyśrodkowuje zawartość w poziomie */
 }
 
 #fire_app_check_\[DEFAULT\] {
