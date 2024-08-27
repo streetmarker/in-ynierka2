@@ -40,6 +40,7 @@ watch(role, (newRole, oldRole) => {
         <!-- right side -->
       </div>
     </CFooter>
+    <PinLock />
   </div>
 </template>
 
@@ -49,10 +50,27 @@ import { collection, doc, getDoc, addDoc } from "firebase/firestore";
 import store from "./store/index"; // TODO TMP
 import ToastMsg from './components/ToastMsg.vue'
 import Navbar from './components/Navbar.vue'
+import PinLock from "./components/PinLock.vue";
 
 export default {
+  setup() {
+    useHead({
+      title: 'Tutor App',
+      meta: [
+        {
+          name: 'description',
+          content: 'This is a description Tutor App'
+        },
+        {
+          property: 'og:title',
+          content: 'Tutor App'
+        }
+      ]
+    })
+  },
   components: {
-    ToastMsg
+    ToastMsg,
+    PinLock
   },
   data() {
     return {
@@ -90,6 +108,9 @@ export default {
     // this.initLogs();
     this.requestPermission();
     this.getToken();
+    if (process.env.NODE_ENV === "production") {
+      this.logEntry();
+    }
   },
   methods: {
     async getToken() {
@@ -121,19 +142,63 @@ export default {
       await addDoc(collection(db, "logs"), data);
     },
     async logEntry() {
-      const docRef = doc(db, "mock", "MYDATA");
-      const docSnap = await getDoc(docRef);
-      if (docSnap._document.val === "Y") {
-        let tokenIn = await token;
-        let date = new Date().toLocaleString();
-        let authIn = auth.currentUser ? auth.currentUser.displayName : null;
-        let data = {
-          token: tokenIn,
-          auth: authIn,
-          date: date,
-        };
-        await addDoc(collection(db, "entries"), data);
+      // const docRef = doc(db, "mock", "MYDATA");
+      // const docSnap = await getDoc(docRef);
+      // if (docSnap._document.val === "Y") {
+      // let tokenIn = await token;
+      let date = new Date().toLocaleString();
+      let authIn = auth.currentUser ? auth.currentUser.displayName : null;
+
+      function getPosition() {
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                // const coords = position.coords;
+
+                // const latitude = coords.latitude;
+                // const longitude = coords.longitude;
+                // const altitude = coords.altitude;
+                // const accuracy = coords.accuracy;
+                // const altitudeAccuracy = coords.altitudeAccuracy;
+                // const heading = coords.heading;
+                // const speed = coords.speed;
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+              });
+            },
+            (error) => {
+              reject(error);
+            }
+          );
+        });
       }
+      async function getIPAddress() {
+        try {
+          const response = await fetch('https://api.ipify.org?format=json');
+          const data = await response.json();
+          const ipAddress = data.ip;
+          // console.log('Adres IP:', ipAddress);
+          return ipAddress;
+        } catch (error) {
+          return 'Błąd przy pobieraniu adresu IP:' + error;
+          // console.error('Błąd przy pobieraniu adresu IP:', error);
+        }
+      }
+
+      const userIP = await getIPAddress();
+      const position = await getPosition();
+
+      let data = {
+        // token: tokenIn,
+        auth: authIn,
+        date: date,
+        location: position || null,
+        userAgent: navigator.userAgent,
+        IP: userIP
+      };
+      await addDoc(collection(db, "entries"), data);
+      // }
     },
     test() {
       //
