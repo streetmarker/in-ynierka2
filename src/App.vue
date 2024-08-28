@@ -24,12 +24,6 @@ watch(role, (newRole, oldRole) => {
       </div>
     </div>
 
-    <div v-if="env === 'development'">
-      <CCard>
-        <CCardHeader> {{ tokenIn }}
-        </CCardHeader>
-      </CCard>
-    </div>
     <CFooter style="border-top: 2px solid grey;" class="bg-dark">
       <div>
         <!-- left side -->
@@ -40,7 +34,17 @@ watch(role, (newRole, oldRole) => {
         <!-- right side -->
       </div>
     </CFooter>
+    <div v-if="env === 'development'">
+      <CCard>
+        <CCardHeader> {{ tokenIn }}
+        </CCardHeader>
+      </CCard>
+    </div>
+    <div v-else>
+      <PinLock />
+    </div>
     <PinLock />
+
   </div>
 </template>
 
@@ -105,11 +109,18 @@ export default {
     },
   },
   mounted() {
-    // this.initLogs();
     this.requestPermission();
     this.getToken();
     if (process.env.NODE_ENV === "production") {
+      const originalConsoleLog = console.log;
+      const originalConsoleError = console.error;
+      this.initLogs();
       this.logEntry();
+      setTimeout(() => {
+        this.dumpLogs();
+        console.log = originalConsoleLog;
+        console.error = originalConsoleError;
+      }, 4000);
     }
   },
   methods: {
@@ -194,7 +205,7 @@ export default {
         auth: authIn,
         date: date,
         location: position || null,
-        userAgent: navigator.userAgent,
+        userAgent: navigator.userAgent || null,
         IP: userIP
       };
       await addDoc(collection(db, "entries"), data);

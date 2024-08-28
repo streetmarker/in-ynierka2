@@ -119,23 +119,7 @@ export const messaging = getMessaging(app);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-export const logOut = () => {
-  auth.signOut();
-  deleteIdbData(dbPromiseVisits);
-  store.commit('resetUser');
-  store.commit('setUserRole', { type: '', loggedIn: false });
-  // function tmp(cb) {
-  //   try {
-  //     renderLoginUI();
-  //     Loader.close();
-  //   } catch (error) {
-  //     setTimeout(() => {
-  //       tmp();
-  //     }, 1000);
-  //   }
-  // }
-  // tmp();
-}
+
 // Initialize the FirebaseUI Widget using Firebase.
 export var ui = new firebaseui.auth.AuthUI(auth);
 
@@ -184,6 +168,24 @@ export const token = getToken(messaging, {
   });
 
 t.stop();
+
+export const logOut = () => {  
+  auth.signOut();
+  deleteIdbData(dbPromiseVisits);
+  store.commit('resetUser');
+  store.commit('setUserRole', { type: '', loggedIn: false });
+  // function tmp(cb) {
+  //   try {
+  //     renderLoginUI();
+  //     Loader.close();
+  //   } catch (error) {
+  //     setTimeout(() => {
+  //       tmp();
+  //     }, 1000);
+  //   }
+  // }
+  // tmp();
+}
 
 export async function saveErrorInDb(stackTrace, router, component, method) {
   const today = new Date();
@@ -563,7 +565,7 @@ var initApp = function () {
 };
 
 startUi();
-window.addEventListener('load', initApp);
+// window.addEventListener('load', initApp);
 
 onMessage(messaging, async (payload) => {
   console.log(`Message received: ${payload}`);
