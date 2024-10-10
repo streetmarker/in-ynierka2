@@ -3,10 +3,11 @@ import VisitsList from "@/components/VisitsList.vue";
 import { logOut, renderLoginUI } from "@/firebaseInitializer";
 import { onMounted, ref, watch } from "vue";
 import store from "../store/index";
+import Loader from "../../public/loader";
 
 onMounted(async () => {
-  if(!store.state.role.loggedIn)
-  renderLoginUI();
+  if (!store.state.role.loggedIn)
+    renderLoginUI();
 });
 
 const role = ref("C");
@@ -17,89 +18,105 @@ watch(role, (newRole, oldRole) => {
 });
 
 function logOutIn() {
+  Loader.open();
   logOut();
   setTimeout(() => {
     renderLoginUI();
+    Loader.close();
   }, 2000);
 }
 </script>
 
 <template>
-        <CCard v-if="!$store.state.role.loggedIn">
-          <CCardHeader>Wybierz metodę logowania/rejestracji
-          </CCardHeader>
-          <CCardBody>
-          <CCloseButton class="text-reset" @click="() => {
-            visibleLogin = false;
-          }
-            " />
-          Wybierz swoją rolę
-          <select id="role" v-model="role">
-            <option value="C">Uczeń</option>
-            <option value="T">Korepetytor</option>
-          </select>
-          <div id="firebaseui-auth-container"></div>
-        </CCardBody>
-        </CCard>
-<div v-else>
-        <CCol sm="auto">
-          <CCard>
-            <CButton class="bg-light" @click="logOutIn()">Wyloguj się</CButton>
-            <CCardBody>
-              <!-- <div v-if="userData.fullName.length !== 0"> -->
-                <h1>{{ userData.fullName }}</h1>
-                <p>{{ userData.email }}</p>
-                <!-- <img style="width: 50px; height: 50px;"
+  <CCard v-if="!$store.state.role.loggedIn">
+    <CCardHeader>Wybierz metodę logowania/rejestracji
+    </CCardHeader>
+    <CCardBody>
+      <CCloseButton class="text-reset" @click="() => {
+        visibleLogin = false;
+      }
+        " />
+      Wybierz swoją rolę
+      <select id="role" v-model="role">
+        <option value="C">Uczeń</option>
+        <option value="T">Korepetytor</option>
+      </select>
+      <div id="firebaseui-auth-container"></div>
+    </CCardBody>
+  </CCard>
+  <div v-else>
+    <CCol sm="auto">
+      <CCard>
+        <CButton class="bg-light" style="background-color:rgb(218 236 255) !important" @click="logOutIn()">Wyloguj się</CButton>
+        <CCardBody>
+          <!-- <div v-if="userData.fullName.length !== 0"> -->
+          <h1>{{ userData.fullName }}</h1>
+          <p>{{ userData.email }}</p>
+          <!-- <img style="width: 50px; height: 50px;"
                   src="https://img.freepik.com/premium-vector/anonymous-user-circle-icon-vector-illustration-flat-style-with-long-shadow_520826-1931.jpg"
                   alt="User Photo" /> -->
-                <img style="width: 50px; height: 50px;" :src="userData.photo" alt="User Photo" />
-              <!-- </div> -->
-            </CCardBody>
-          </CCard>
+          <img style="width: 50px; height: 50px;" :src="userData.photo" alt="User Photo" loading="lazy" />
+          <!-- </div> -->
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol>
+      <CRow class="mt-3">
+        <CCol xs="12">
+          <CCollapse :visible="visibleB">
+            <CCard style="margin-right: 10px;">
+              <CCardTitle>Edycja preferencji</CCardTitle>
+              <CCardBody>
+                <CForm class="px-4 py-4">
+                  <div class="mb-3">
+                    <CFormLabel>Miasto</CFormLabel>
+                    <Multiselect v-model="selectedOptionsC" :options="optionsC" :multiple="true" label="name"
+                      track-by="id" />
+                  </div>
+                  <div class="mb-3">
+                    <CFormLabel>Przedmioty</CFormLabel>
+                    <Multiselect v-model="selectedOptionsS" :options="optionsS" :multiple="true" label="name"
+                      track-by="id" />
+                  </div>
+                  <div class="mb-3">
+                    <CFormLabel>Poziom</CFormLabel>
+                    <Multiselect v-model="selectedOptionsL" :options="optionsL" :multiple="false" label="name"
+                      track-by="id" />
+                  </div>
+                  <CButton color="primary" type="submit" @click="saveChanges">Zapisz zmiany</CButton>
+                </CForm>
+              </CCardBody>
+            </CCard>
+          </CCollapse>
         </CCol>
-        <CCol>
-          <CRow class="mt-3">
-            <CCol xs="12">
-              <CCollapse :visible="visibleB">
-                <CCard style="margin-right: 10px;">
-                  <CCardTitle>Edycja preferencji</CCardTitle>
-                  <CCardBody>
-                    <CForm class="px-4 py-4">
-                      <div class="mb-3">
-                        <CFormLabel>Miasto</CFormLabel>
-                        <Multiselect v-model="selectedOptionsC" :options="optionsC" :multiple="true" label="name"
-                          track-by="id" />
-                      </div>
-                      <div class="mb-3">
-                        <CFormLabel>Przedmioty</CFormLabel>
-                        <Multiselect v-model="selectedOptionsS" :options="optionsS" :multiple="true" label="name"
-                          track-by="id" />
-                      </div>
-                      <div class="mb-3">
-                        <CFormLabel>Poziom</CFormLabel>
-                        <Multiselect v-model="selectedOptionsL" :options="optionsL" :multiple="false" label="name"
-                          track-by="id" />
-                      </div>
-                      <CButton color="primary" type="submit" @click="saveChanges">Zapisz zmiany</CButton>
-                    </CForm>
-                  </CCardBody>
-                </CCard>
-              </CCollapse>
-            </CCol>
-          </CRow>
-          <br>
-          <CCol sm="auto">
-            <div class="edit-buttons">
-              <CButton color="primary" @click="visibleA = !visibleA">Edycja danych osobowych</CButton>
-              <CButton color="primary" @click="visibleB = !visibleB">Edycja preferencji</CButton>
-            </div>
-          </CCol>
-        </CCol>
-        <VisitsList />
-      </div>
+      </CRow>
+      <br>
+      <CCol sm="auto">
+        <div class="edit-buttons">
+          <CButton color="primary" @click="visibleA = !visibleA">Edycja danych osobowych</CButton>
+          <CButton color="primary" @click="visibleB = !visibleB">Edycja preferencji</CButton>
+        </div>
+      </CCol>
+    </CCol>
+    <VisitsList />
+  </div>
 </template>
 
 <script>
+// Helper function to load images sequentially
+// function loadImagesSequentially(images) {
+//   let index = 0;
+
+//   function loadNextImage() {
+//     if (index < images.length) {
+//       images[index].src = images[index].dataset.src;
+//       index++;
+//       setTimeout(loadNextImage, 100); // Możesz dostosować czas opóźnienia
+//     }
+//   }
+
+//   loadNextImage();
+// }
 
 export default {
   name: "ClientPanel",
@@ -127,7 +144,8 @@ export default {
     };
   },
   mounted() {
-    //
+    // const imageElements = document.querySelectorAll('img[data-src]');
+    // loadImagesSequentially(imageElements);
   },
   computed: {
     userData() {

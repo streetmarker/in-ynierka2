@@ -154,7 +154,7 @@ export const token = getToken(messaging, {
 })
   .then((currentToken) => {
     if (currentToken) {
-      console.log('TOKEN:', currentToken);
+      console.log(`TOKEN: ${currentToken}`);
       return currentToken;
     } else {
       // Show permission request UI

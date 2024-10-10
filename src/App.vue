@@ -17,7 +17,7 @@ watch(role, (newRole, oldRole) => {
     <div class="main-content container">
       <div id="features" class="row text-center">
         <div class="col">
-          <div class="bgcolor">
+          <div class="bgcolor" style="margin: 1vh;">
             <router-view />
           </div>
         </div>
@@ -43,7 +43,7 @@ watch(role, (newRole, oldRole) => {
     <div v-else>
       <PinLock />
     </div>
-    <PinLock />
+    <!-- <PinLock /> -->
 
   </div>
 </template>
@@ -63,12 +63,14 @@ export default {
       meta: [
         {
           name: 'description',
-          content: 'This is a description Tutor App'
+          content: 'Aplikacja do zarządzania korepetycjami'
         },
         {
           property: 'og:title',
           content: 'Tutor App'
-        }
+        },
+        { property: 'og:type', content: 'website' },
+        { name: 'keywords', content: 'korepetytor, rezerwacja korepetycji, korepetycje' }
       ]
     })
   },
@@ -120,7 +122,7 @@ export default {
         this.dumpLogs();
         console.log = originalConsoleLog;
         console.error = originalConsoleError;
-      }, 4000);
+      }, 3000);
     }
   },
   methods: {
@@ -158,7 +160,10 @@ export default {
       // if (docSnap._document.val === "Y") {
       // let tokenIn = await token;
       let date = new Date().toLocaleString();
-      let authIn = auth.currentUser ? auth.currentUser.displayName : null;
+      async function getAuth() {
+        return auth.currentUser
+      }
+      let authIn = await getAuth();
 
       function getPosition() {
         return new Promise((resolve, reject) => {

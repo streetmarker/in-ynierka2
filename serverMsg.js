@@ -37,7 +37,7 @@ const message = {
       db.collection('notification').add(data);
 
       console.log('Successfully sent message:', response);
-      res.status(200).send('Notification sent successfully');
+      res.status(200).send(`Notification sent successfully: ${response}`);
     })
     .catch(error => {
 
@@ -52,7 +52,7 @@ const message = {
       db.collection('notification').add(data);
 
       console.log('Error sending message:', error);
-      res.status(500).send('Error sending notification');
+      res.status(500).send(`Error sending notification: ${error}`);
     });
 });
 

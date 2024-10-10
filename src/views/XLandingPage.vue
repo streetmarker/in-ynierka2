@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="jumbotron text-center">
-      <h1>Aplikacja do zarządzania korepetycjami Tutor App</h1>
+      <h1>Aplikacja do zarządzania korepetycjami</h1> <h1> Tutor App</h1>
       <div class="jumbotron text-center">
         <img style="width: 25%" class="img-fluid rounded" src="../../public/front_img.jpg" alt="Lista korepetytorów">
       </div>

@@ -1,13 +1,15 @@
 <template>
     <CNavbar expand="lg" style="border-bottom: 2px solid grey;" color-scheme="dark" class="bg-dark">
       <CContainer fluid>
-        <CNavbarBrand><router-link style="text-decoration: none" to="/">
-            <img src="../../public/firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />Tutor
-            App</router-link></CNavbarBrand>
+        <CNavbarBrand>
+          <!-- <router-link style="text-decoration: none" to="/"></router-link> -->
+            <img src="../../public/firebase-logo.png" alt="" width="22" height="24" class="d-inline-block align-top" />
+            <a style="text-decoration: none" href="/">Tutor App</a>
+          </CNavbarBrand>
         <CNavbarBrand>
 
           <CButton href="#/panel">
-            <img style="width: 30px; height: 30px; border: 1px solid transparent;" src="../../public/5964729.png" />
+            <img style="width: 30px; height: 30px; border: 1px solid transparent;" src="../../public/5964729.png" alt="profil użytkownika"/>
           </CButton>
 
         </CNavbarBrand>

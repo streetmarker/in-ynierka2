@@ -1,15 +1,3 @@
-<script setup>
-// import "@coreui/coreui/dist/css/coreui.min.css";
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import {
-//   CButton,
-//   CToaster,
-//   CToast,
-//   CToastHeader,
-//   CToastBody,
-// } from "@coreui/vue";
-</script>
-
 <template>
     <!-- <CButton color="primary" @click="createToast('Example Title', 'Example content', 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_28dp.png')">Send a toast</CButton> -->
     <CToaster class="p-3" placement="top-end">

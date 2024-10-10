@@ -1,10 +1,15 @@
 <template>
   <div v-if="isLocked" class="pin-lock-overlay">
-    <div class="pin-lock-container">
-      <h2>Enter PIN</h2>
-      <input v-model="pin" type="password" maxlength="4" placeholder="****" />
-      <button @click="unlockPage">Unlock</button>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <div class="container">
+      <div class="pin-lock-container">
+        <h1>Aplikacja do zarządzania korepetycjami</h1><h1> Tutor App</h1>
+      </div>
+      <div class="pin-lock-container">
+        <h2>Enter PIN</h2>
+        <input v-model="pin" type="password" maxlength="4" placeholder="****" />
+        <button @click="unlockPage">Unlock</button>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </div>
     </div>
   </div>
   <div v-else>
@@ -23,7 +28,7 @@ const pin = ref('');
 const errorMessage = ref('');
 
 const checkToken = () => {
-  function waitForCurrentUser(callback = () => {}, maxWaitTime = 3000, interval = 500) {
+  function waitForCurrentUser(callback = () => { }, maxWaitTime = 3000, interval = 500) {
     let elapsedTime = 0;
 
     function checkCurrentUser() {
@@ -50,7 +55,7 @@ const checkToken = () => {
 onMounted(() => {
   setTimeout(() => {
     checkToken();
-    
+
   }, 2000);
 });
 
@@ -83,6 +88,7 @@ const unlockPage = () => {
   padding: 20px;
   border-radius: 8px;
   text-align: center;
+  margin: 10px 0;
 }
 
 input[type="password"] {
@@ -102,5 +108,13 @@ button {
 .error-message {
   color: red;
   margin-top: 10px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 </style>
