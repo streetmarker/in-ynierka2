@@ -324,39 +324,15 @@ async function getUserRoleFirebase(uid) {
 async function getTutorFirebase(uid) { // pobranie po userId
   const t = trace(perf, "get_tutor_firebase");
   t.start();
-
-  // const docRef = doc(db, "tutor", uid); // get saved role
-  // const docSnap = await getDoc(docRef);
-  // console.log('get tutor: ', docSnap.data());
   let res = null;
   const q = query(collection(db, "tutor"), where("userId", "==", uid));
 
   const querySnapshot = await getDocs(q);
   querySnapshot.forEach((doc) => {
-    // doc.data() is never undefined for query doc snapshots
-    // console.log(doc.id, " => ", doc.data());
-
-    // const endTime = performance.now();
-    // const executionTime = endTime - startTime;
-    // const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
-    // logEvent(analytics, logData.name, { value: logData.value + " time:  " + new Date() });
-    res = doc.data()
+    res = doc.data();
   });
   t.stop();
   return res
-  // console.log("getTutorFirebase: ",res);
-  // const endTime = performance.now()
-  // const executionTime = endTime - startTime
-  // const logData = { name: 'getTutorFirebase', value: executionTime.toFixed(2) + "ms" }
-  // axios.post('http://localhost:3000/api/logs', logData)
-  //   .then(response => {
-  //     console.log('Log sent successfully');
-  //   })
-  //   .catch(error => {
-  //     console.error('Error sending log:', error);
-  //   });
-
-  // return res
 }
 async function getUserFirebase(uid) {
 

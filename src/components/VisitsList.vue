@@ -1,15 +1,4 @@
 <script setup>
-// import "@coreui/coreui/dist/css/coreui.min.css";
-// import "bootstrap/dist/css/bootstrap.min.css";
-// import {
-//     CTable,
-//     CTableBody,
-//     CTableHeaderCell,
-//     CTableDataCell,
-//     CTableHead,
-//     CTableRow,
-//     CTableCaption
-// } from "@coreui/vue";
 </script>
 
 <template>

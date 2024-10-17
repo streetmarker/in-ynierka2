@@ -52,9 +52,9 @@ if (process.env.NODE_ENV === "production") {
       console.log("New content is available; please refresh.");
 
       // Wyświetl powiadomienie dla użytkownika o dostępności aktualizacji
-      if (confirm("Dostępna jest aktualizacja. Pobrać nową wersję?")) {
+      // if (confirm("Dostępna jest aktualizacja. Pobrać nową wersję?")) {
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
+      // }
     },
     offline() {
       console.log(

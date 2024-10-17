@@ -1,14 +1,3 @@
-<!-- <script setup>
-import "@coreui/coreui/dist/css/coreui.min.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody
-} from "@coreui/vue";
-</script> -->
 <template>
   <div>
     <CButton color="primary" @click="() => { initPaypal() }">Opłać wizytę</CButton>
@@ -97,7 +86,7 @@ export default {
                 return actions.order.create({
                   purchase_units: [{
                     amount: {
-                      value: this.tutor.data.hourRate // Kwota do zapłaty
+                      value: 0 // this.tutor.data.hourRate // Kwota do zapłaty
                     }
                   }]
                 });

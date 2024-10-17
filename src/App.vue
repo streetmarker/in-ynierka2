@@ -41,7 +41,7 @@ watch(role, (newRole, oldRole) => {
       </CCard>
     </div>
     <div v-else>
-      <PinLock />
+      <!-- <PinLock /> -->
     </div>
     <!-- <PinLock /> -->
 
@@ -60,18 +60,18 @@ export default {
   setup() {
     useHead({
       title: 'Tutor App',
-      meta: [
-        {
-          name: 'description',
-          content: 'Aplikacja do zarządzania korepetycjami'
-        },
-        {
-          property: 'og:title',
-          content: 'Tutor App'
-        },
-        { property: 'og:type', content: 'website' },
-        { name: 'keywords', content: 'korepetytor, rezerwacja korepetycji, korepetycje' }
-      ]
+      // meta: [
+      //   {
+      //     name: 'description',
+      //     content: 'Aplikacja do zarządzania korepetycjami'
+      //   },
+      //   {
+      //     property: 'og:title',
+      //     content: 'Tutor App'
+      //   },
+      //   { property: 'og:type', content: 'website' },
+      //   { name: 'keywords', content: 'korepetytor, rezerwacja korepetycji, korepetycje' }
+      // ]
     })
   },
   components: {
@@ -159,7 +159,7 @@ export default {
       // const docSnap = await getDoc(docRef);
       // if (docSnap._document.val === "Y") {
       // let tokenIn = await token;
-      let date = new Date().toLocaleString();
+      let date = new Date();
       async function getAuth() {
         return auth.currentUser
       }

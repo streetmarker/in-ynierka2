@@ -10,6 +10,7 @@
     "fcm": "cp ./src/firebase-messaging-sw.js ../../Firestore/public/ && npm run host",
     "full": "npm run build && npm run host",
     "test:unit": "vue-cli-service test:unit",
+    "test": "npx cypress open",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
